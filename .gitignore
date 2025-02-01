@@ -1,0 +1,99 @@
+# Ignore build outputs
+[Bb]in/
+[Oo]bj/
+
+# Ignore user-specific files
+*.user
+*.suo
+*.userprefs
+*.lock.json
+
+# Ignore IDE-specific files
+.vs/
+.idea/
+*.swp
+*.swo
+
+# Ignore NuGet packages and restore files
+[Nn]u[Gg]et/
+*.nupkg
+packages/
+nuget.exe
+
+# Ignore local development files
+*.local
+
+# Ignore test results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# Ignore ReSharper files
+_ReSharper.*
+*.ReSharper
+
+# Ignore Azure Functions local settings
+local.settings.json
+
+# Ignore Rider-specific files
+.idea/
+*.sln.iml
+
+# Ignore Visual Studio cache directory
+.vs/
+
+# Ignore MSBuild output files
+*.msbuild
+*.msb
+
+# Ignore .NET Core tooling
+.dotnet/
+
+# Ignore F# compilation outputs
+*.fs.js
+*.fs.i.js
+*.fs.proj
+
+# Ignore Node.js and npm files (if applicable)
+node_modules/
+npm-debug.log
+
+# Ignore VS Code settings
+.vscode/
+
+# Ignore macOS files
+.DS_Store
+
+# Ignore Rider/IntelliJ files
+.idea/
+*.iml
+
+# Ignore logs and diagnostics
+logs/
+*.log
+*.tlog
+
+# Ignore Azure Functions artifacts
+bin/
+obj/
+
+### Docker-specific ignores ###
+# Ignore Docker Compose files (if you have custom overrides)
+docker-compose.override.yml
+
+# Ignore Docker build context directories
+**/docker-compose/data/
+**/docker-compose/logs/
+
+# Ignore Docker volume directories
+**/volumes/
+
+# Ignore Docker-specific files
+**/.dockerignore
+**/Dockerfile.local
+**/docker-compose.env
+
+# Ignore Docker Compose build artifacts
+**/docker-compose.build.*
+
+# ignore env
+.env

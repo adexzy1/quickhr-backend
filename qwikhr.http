@@ -1,0 +1,6 @@
+@qwikhr_HostAddress = http://localhost:5024
+
+GET {{qwikhr_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
