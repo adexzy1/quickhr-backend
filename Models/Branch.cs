@@ -13,7 +13,7 @@ public class Branch
 
     [Required]
     [MaxLength(50)]
-    public string? FirstName { get; set; }
+    public string? Name { get; set; }
     
     [ForeignKey("FK_CompanyId")]
     public int CompanyId { get; set; }
