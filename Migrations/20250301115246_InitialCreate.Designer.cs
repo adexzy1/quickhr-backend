@@ -12,7 +12,7 @@ using qwikhr.Data;
 namespace qwikhr.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250301020028_InitialCreate")]
+    [Migration("20250301115246_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -59,6 +59,11 @@ namespace qwikhr.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<Guid?>("Slug")
                         .HasColumnType("uuid");
 
@@ -78,7 +83,7 @@ namespace qwikhr.Migrations
                     b.Property<int>("CompanyId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("FirstName")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");

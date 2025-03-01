@@ -1,112 +1,69 @@
-using Microsoft.EntityFrameworkCore;
-using qwikhr.Data;
 using qwikhr.Mappers;
-using qwikhr.Models;
-
-namespace qwikhr.Controllers;
-
 using Microsoft.AspNetCore.Mvc;
+using qwikhr.Dtos.Region;
+using qwikhr.Interfaces;
 
-[Route("api/regions")]
-[ApiController]
-public class RegionController : ControllerBase
+namespace qwikhr.Controllers
 {
-    private readonly ApplicationDbContext _context;
-    private readonly RegionMapper _regionMapper;
+    [Route("api/regions")]
+    [ApiController]
+    public class RegionController(IRegionRepository regionRepository) : ControllerBase
+    {
+        private readonly IRegionRepository _regionRepo = regionRepository;
 
-    public RegionController(ApplicationDbContext context, RegionMapper regionMapper)
-    {
-        _context = context;
-        _regionMapper = regionMapper;
-    }
-    
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<Region>>> GetRegions()
-    {
-        var regions = await _context.Regions.ToListAsync();
-        return Ok(_regionMapper.RegionListToDtoList(regions));
-    }
-    
-    [HttpGet("{slug}")]
-    public async Task<ActionResult<Region>> GetRegion(Guid slug)
-    {
-        var region = await _context.Regions.FirstOrDefaultAsync(r => r.Slug == slug);
-
-        if (region == null)
+        [HttpGet]
+        public async Task<IActionResult> GetRegions()
         {
-            return NotFound();
+            var regions = await _regionRepo.GetAllAsync();
+            var regionsDto = regions.Select(r => r.ToRegionDto());
+            return Ok(regionsDto);
         }
 
-        return Ok(_regionMapper.RegionToDto(region));
-    }
-    
-    [HttpPut("{slug}")]
-    public async Task<IActionResult> PutRegion(Guid slug, Region region)
-    {
-        if (slug != region.Slug)
+        [HttpGet("{slug}")]
+        public async Task<IActionResult> GetAll(Guid slug)
         {
-            return BadRequest();
-        }
+            var region = await _regionRepo.GetBySlugAsync(slug);
 
-        var existingRegion = await _context.Regions.FirstOrDefaultAsync(r => r.Slug == slug);
-
-        if(existingRegion == null)
-        {
-            return NotFound();
-        }
-
-        region.Id = existingRegion.Id;
-        region.UpdatedAt = DateTime.UtcNow;
-
-        _context.Entry(existingRegion).CurrentValues.SetValues(region);
-
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!RegionExists(slug))
+            if (region == null)
             {
                 return NotFound();
             }
-            else
-            {
-                throw;
-            }
+
+            return Ok(region.ToRegionDto());
         }
 
-        return NoContent();
-    }
-    
-    [HttpPost]
-    public async Task<ActionResult<Region>> PostRegion(Region region)
-    {
-        region.CreatedAt = DateTime.UtcNow;
-        region.UpdatedAt = DateTime.UtcNow;
-        _context.Regions.Add(region);
-        await _context.SaveChangesAsync();
-
-        return CreatedAtAction("GetRegion", new { slug = region.Slug }, _regionMapper.RegionToDto(region));
-    }
-    
-    [HttpDelete("{slug}")]
-    public async Task<IActionResult> DeleteRegion(Guid slug)
-    {
-        var region = await _context.Regions.FirstOrDefaultAsync(r => r.Slug == slug);
-        if (region == null)
+        [HttpPut("{slug}")]
+        public async Task<IActionResult> GetBySlug([FromRoute] Guid slug, [FromBody] UpdateRegionDto regionDto)
         {
-            return NotFound();
+
+            var regionModel = await _regionRepo.UpdateAsync(slug, regionDto);
+
+            if (regionModel == null)
+            {
+                return NotFound();
+            }
+            return Ok(regionModel.ToRegionDto());
         }
 
-        _context.Regions.Remove(region);
-        await _context.SaveChangesAsync();
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] CreateRegionDto regionDto)
+        {
+            var regionModel = regionDto.ToRegionFromCreateDto();
+            await _regionRepo.CreateAsync(regionModel);
+            return CreatedAtAction(nameof(GetBySlug), new { slug = regionModel.Slug }, regionModel.ToRegionDto());
+        }
 
-        return NoContent();
-    }
+        [HttpDelete("{slug}")]
+        public async Task<IActionResult> Delete([FromRoute] Guid slug)
+        {
+            var regionModel = await _regionRepo.DeleteAsync(slug);
+            if (regionModel == null)
+            {
+                return NotFound();
+            }
 
-    private bool RegionExists(Guid slug)
-    {
-        return _context.Regions.Any(e => e.Slug == slug);
+            return NoContent();
+        }
+
     }
 }

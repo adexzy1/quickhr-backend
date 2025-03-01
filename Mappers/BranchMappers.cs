@@ -16,12 +16,13 @@ namespace qwikhr.Mappers
             };
         }
 
-        public static Branch ToBranchFromCreateDto(this CreateBranchDto branchDto, int comadyId)
+        public static Branch ToBranchFromCreateDto(this CreateBranchDto branchDto, int companyId)
         {
             return new Branch
             {
                 Name = branchDto.Name,
-                CompanyId = comadyId
+                CompanyId = companyId,
+                Slug = Guid.NewGuid()
             };
         }
     }
