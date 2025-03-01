@@ -6,7 +6,15 @@ using Microsoft.EntityFrameworkCore;
 public class ApplicationDbContext : DbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
-    
+
+    public DbSet<Employee> Employees { get; set; }
+    public DbSet<User> Users { get; set; }
+    public DbSet<Branch> Branches { get; set; }
+    public DbSet<Company> Companies { get; set; }
+    public DbSet<Department> Departments { get; set; }
+    public DbSet<Region> Regions { get; set; }
+    public DbSet<Position> Positions { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.UseIdentityByDefaultColumns();
@@ -21,22 +29,16 @@ public class ApplicationDbContext : DbContext
                     .Property(property.Name)
                     .HasDefaultValueSql("gen_random_uuid()");
             }
-            
+
             var createdAtProperty = entityType.ClrType.GetProperties()
                 .FirstOrDefault(p => p.Name == "CreatedAt");
             if (createdAtProperty != null)
                 modelBuilder.Entity(entityType.ClrType)
                     .Property(createdAtProperty.Name)
-                    .HasDefaultValueSql("getdate()");
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
         }
         base.OnModelCreating(modelBuilder);
     }
 
-    public DbSet<Employee> Employees { get; set; }
-    public DbSet<User> Users { get; set; }
-    public DbSet<Branch> Branches { get; set; }
-    public DbSet<Company> Companies { get; set; }
-    public DbSet<Department> Departments { get; set; }
-    public DbSet<Region> Regions { get; set; }
-    public DbSet<Position> Positions { get; set; }
+
 }

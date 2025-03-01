@@ -97,3 +97,5 @@ docker-compose.override.yml
 
 # ignore env
 .env
+.env.production
+.fake

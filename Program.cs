@@ -2,10 +2,13 @@ using Microsoft.EntityFrameworkCore;
 using qwikhr.Data;
 using DotNetEnv;
 using qwikhr.Mappers;
+using qwikhr.Interfaces;
+using qwikhr.Repository;
 
 Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddEnvironmentVariables();
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -14,18 +17,12 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 builder.Services.AddScoped<RegionMapper>();
 
-// Load environment variables manually
-var dbHost = Environment.GetEnvironmentVariable("DB_HOST") ?? "localhost";
-var dbName = Environment.GetEnvironmentVariable("DB_NAME") ?? "qwikhr";
-var dbUser = Environment.GetEnvironmentVariable("DB_USER") ?? "root";
-var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "";
-var dbPort = Environment.GetEnvironmentVariable("DB_PORT") ?? "5432";
-
-var connectionString = $"Host={dbHost};Port={dbPort};Username={dbUser};Password={dbPassword};Database={dbName}";
-Console.WriteLine($"Using connection string: {connectionString}");
-
-builder.Services.AddDbContext<ApplicationDbContext>(options => 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
+
+// reositories
+builder.Services.AddScoped<IBranchRepository, BranchRepository>();
 
 var app = builder.Build();
 
@@ -37,7 +34,15 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseRouting();
-app.UseHttpsRedirection();
+if (app.Environment.IsProduction())
+{
+    app.UseHttpsRedirection();
+}
+
 app.MapControllers();
 
 app.Run();
+record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
+{
+    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+}
