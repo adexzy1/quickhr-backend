@@ -7,7 +7,10 @@ services:
     ports:
       - "7200:80"
     environment:
-      - ConnectionStrings__DefaultConnection=Server=db;Database=${DB_NAME};User Id=${DB_USER};Password=${DB_PASSWORD};
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: db
     depends_on:
       db:
         condition: service_healthy  # Ensures DB is ready before starting

@@ -13,7 +13,7 @@ using qwikhr.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
-DotNetEnv.Env.Load();
+Env.Load();
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -22,23 +22,15 @@ builder.Services.AddControllers(options =>
 {
     options.Filters.Add(new AuthorizeFilter());
 });
-Console.WriteLine(Environment.GetEnvironmentVariable("DATABASE_URL"));
-var connectionString = "";
 
-// Use appsettings.json in development, otherwise use environment variable
-if (builder.Environment.IsDevelopment())
-{
-    connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
-}
-else
-{
-    connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+var dbName = Environment.GetEnvironmentVariable("DB_NAME");
+var dbUser = Environment.GetEnvironmentVariable("DB_USER");
+var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD");
+var dbHost = Environment.GetEnvironmentVariable("DB_HOST");
 
-    if (string.IsNullOrEmpty(connectionString))
-    {
-        throw new Exception("Database connection string is missing. Check environment variables.");
-    }
-}
+
+var connectionString = $"Server={dbHost};Database={dbName};User Id={dbUser};Password={dbPassword};";
+Console.WriteLine(connectionString);
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
