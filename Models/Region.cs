@@ -9,7 +9,7 @@ public class Region
     [Key]
     public int Id { get; set; }
 
-    public Guid Slug { get; set; }
+    public Guid Slug { get; set; } = Guid.NewGuid();
 
     [Required]
     [MaxLength(50)]

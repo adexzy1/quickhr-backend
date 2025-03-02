@@ -2,61 +2,29 @@ namespace qwikhr.Models;
 
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Identity;
+
 [Table("users")]
 
-public class User
+public class User : IdentityUser<int>
 {
-    [Key]
-    public int Id { get; set; }
-    
-    public Guid? Slug { get; set; }
+    public Guid? Slug { get; set; } = Guid.NewGuid();
 
-    [Required]
     [MaxLength(50)]
     public string? FirstName { get; set; }
 
-    [Required]
     [MaxLength(50)]
     public string? LastName { get; set; }
 
-    [Required]
-    [MaxLength(50)]
-    public string? Username { get; set; }
-
-    [Required]
-    [EnumDataType(typeof(UserRole))]
-    public UserRole Role { get; set; }
-
-    [Required]
-    [EnumDataType(typeof(UserStatus))]
-    public UserStatus Status { get; set; }
-
-    [Required]
-    [EmailAddress]
-    public string? Email { get; set; }
-
-    [Required]
-    [MinLength(6)]
-    public string? Password { get; set; }
+    public bool Status { get; set; } = true;
 
     [ForeignKey("Employee")]
     public int EmployeeId { get; set; }
-    
+
     [ForeignKey("FK_CompanyId")]
     public int CompanyId { get; set; }
     public Company? Company { get; set; }
 }
 
-public enum UserRole
-{
-    Admin,
-    Hr,
-    Employee,
-    Manager
-}
 
-public enum UserStatus
-{
-    Active,
-    Inactive
-}
+
