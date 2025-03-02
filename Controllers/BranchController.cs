@@ -3,43 +3,67 @@ using qwikhr.Dtos.Branch;
 using qwikhr.Interfaces;
 using qwikhr.Mappers;
 
-namespace qwikhr.Controllers;
-[Route("api/branches")]
-[ApiController]
-public class BranchController : ControllerBase
+namespace qwikhr.Controllers
 {
-    private readonly IBranchRepository _branchRepo;
+    [Route("api/branches")]
+    [ApiController]
+    public class BranchController : ControllerBase
 
-    public BranchController(IBranchRepository branchRepository)
     {
-        _branchRepo = branchRepository;
-    }
+        private readonly IBranchRepository _branchRepo;
 
-    [HttpGet]
-    public async Task<IActionResult> GetAll()
-    {
-        var branches = await _branchRepo.GetAllAsync();
-        return Ok(branches);
-    }
-
-    [HttpGet("{slug:string}")]
-    public async Task<IActionResult> GetBySlug(Guid slug)
-    {
-        var branch = await _branchRepo.GetBySlugAsync(slug);
-        if (branch == null)
+        public BranchController(IBranchRepository branchRepository)
         {
-            return NotFound();
+            _branchRepo = branchRepository;
         }
-        return Ok(branch.ToBranchDto());
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var branches = await _branchRepo.GetAllAsync();
+            var branchDto = branches.Select(b => b.ToBranchDto());
+            return Ok(branchDto);
+        }
+
+        [HttpGet("{slug}")]
+        public async Task<IActionResult> GetBySlug([FromRoute] Guid slug)
+        {
+            var branch = await _branchRepo.GetBySlugAsync(slug);
+            if (branch == null)
+            {
+                return NotFound();
+            }
+            return Ok(branch.ToBranchDto());
+        }
+
+        [HttpPost("{companyId:int}")]
+        public async Task<IActionResult> Create([FromRoute] int companyId, [FromBody] CreateBranchDto branchdto)
+        {
+            var branchModel = branchdto.ToBranchFromCreateDto(companyId);
+            await _branchRepo.CreateAsync(branchModel);
+            return CreatedAtAction(nameof(GetBySlug), new { slug = branchModel.Slug }, branchModel.ToBranchDto());
+        }
+
+        [HttpPut("{slug}")]
+        public async Task<IActionResult> Update([FromRoute] Guid slug, [FromBody] UpdateBranchDto branchDto)
+        {
+            var branchModel = await _branchRepo.UpdateAsync(slug, branchDto);
+            if (branchModel == null)
+            {
+                return NotFound();
+            }
+            return Ok(branchModel.ToBranchDto());
+        }
+
+        [HttpDelete("{slug}")]
+        public async Task<IActionResult> Delete([FromRoute] Guid slug)
+        {
+            var branch = await _branchRepo.DeleteAsync(slug);
+            if (branch == null)
+            {
+                return NotFound();
+            }
+            return NoContent();
+        }
     }
-
-    [HttpPost("{companyId:int}")]
-    public async Task<IActionResult> create([FromBody] CreateBranchDto branchdto)
-    {
-        var branchModel = branchdto.ToBranchFromCreateDto(branchdto.CompanyId);
-        await _branchRepo.CreateAsync(branchModel);
-        return CreatedAtAction(nameof(GetBySlug), new { slug = branchModel.Slug });
-    }
-
-
-}
+};
