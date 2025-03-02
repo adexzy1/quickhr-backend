@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +21,7 @@ namespace qwikhr.Controllers
         private readonly ITokenService _tokenService = tokenService;
         private readonly SignInManager<User> _signInManager = signInManager;
 
+        [AllowAnonymous]
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
         {
@@ -32,6 +34,7 @@ namespace qwikhr.Controllers
             return Ok(new { message = Message, data = adminUserDto });
         }
 
+        [AllowAnonymous]
         [HttpPost("admin/login")]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
@@ -39,24 +42,24 @@ namespace qwikhr.Controllers
             {
                 return BadRequest(ModelState);
             }
-            var user = await _userManager.Users.Include(u => u.Company).FirstOrDefaultAsync(u => u.Email == loginDto.Email);
+            var user = await _userManager.Users.Include(u => u.Company).FirstOrDefaultAsync(u => u.Email.ToLower() == loginDto.Email.ToLower());
 
             if (user == null)
             {
-                return Unauthorized("Account not found");
+                return Unauthorized(new { message = "Account not Found" });
             }
             var roles = await _userManager.GetRolesAsync(user);
 
             if (roles?.Contains("Emloyee") == true)
             {
-                return Unauthorized("UnAuthorized");
+                return Unauthorized(new { message = "UnAuthorized" });
             }
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
 
             if (!result.Succeeded)
             {
-                return Unauthorized("Invalid Credentials");
+                return Unauthorized(new { message = "Invalid Credentials" });
             }
 
             if (roles?.Contains("Admin") == true)

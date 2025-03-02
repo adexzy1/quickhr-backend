@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using qwikhr.Data;
 using DotNetEnv;
-using qwikhr.Mappers;
 using qwikhr.Interfaces;
 using qwikhr.Repository;
 using qwikhr.Models;
@@ -9,6 +8,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using qwikhr.Services;
+using Microsoft.AspNetCore.Mvc.Authorization;
+
 
 Env.Load();
 
@@ -19,7 +20,10 @@ builder.Configuration.AddEnvironmentVariables();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add(new AuthorizeFilter());
+});
 
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -56,6 +60,21 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(
            System.Text.Encoding.UTF8.GetBytes(builder.Configuration["JWT:SigningKey"] ?? throw new InvalidOperationException("JWT SigningKey is not configured"))
        )
+    };
+    // global error message for 401 response
+    options.Events = new JwtBearerEvents
+    {
+        OnChallenge = async context =>
+        {
+            context.HandleResponse();
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            context.Response.ContentType = "application/json";
+            var responseObj = new
+            {
+                message = "Unauthorized access"
+            };
+            await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(responseObj));
+        }
     };
 });
 

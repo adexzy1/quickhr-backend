@@ -37,7 +37,7 @@ namespace qwikhr.Services
 
                 var user = new User
                 {
-                    UserName = email,
+                    UserName = email.ToLower(),
                     Email = email,
                     CompanyId = createdCompany.Id,
                     Status = true
