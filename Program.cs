@@ -26,8 +26,23 @@ builder.Services.AddControllers(options =>
     options.Filters.Add(new AuthorizeFilter());
 });
 
+var connectionString = "";
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+// Use appsettings.json in development, otherwise use environment variable
+if (builder.Environment.IsDevelopment())
+{
+    connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+}
+else
+{
+    connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+
+    if (string.IsNullOrEmpty(connectionString))
+    {
+        throw new Exception("Database connection string is missing. Check environment variables.");
+    }
+}
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
 
