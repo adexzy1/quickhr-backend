@@ -11,12 +11,9 @@ using qwikhr.Services;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using qwikhr.Extensions;
 
-
-Env.Load();
-
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
-
+DotNetEnv.Env.Load();
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -25,13 +22,13 @@ builder.Services.AddControllers(options =>
 {
     options.Filters.Add(new AuthorizeFilter());
 });
-
+Console.WriteLine(Environment.GetEnvironmentVariable("DATABASE_URL"));
 var connectionString = "";
 
 // Use appsettings.json in development, otherwise use environment variable
 if (builder.Environment.IsDevelopment())
 {
-    connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
 }
 else
 {
