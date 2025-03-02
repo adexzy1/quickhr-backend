@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using qwikhr.Services;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using qwikhr.Extensions;
 
 
 Env.Load();
@@ -101,6 +102,7 @@ if (app.Environment.IsProduction())
 {
     app.UseHttpsRedirection();
 }
+app.ApplyMigrations();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
