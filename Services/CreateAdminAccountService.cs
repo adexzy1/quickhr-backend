@@ -64,10 +64,6 @@ namespace qwikhr.Services
                         Slug = createdUser.Slug,
                         Id = createdUser.Id,
                         Email = createdUser.Email,
-                        Company = createdUser.Company?.ToCompanyDto() ?? new CompanyDto(),
-                        EmailVerified = user.EmailConfirmed,
-                        Roles = [.. roles],
-                        Token = _tokenService.CreateToken(createdUser)
                     }
                     ,
                     "Account Created Successfully"
