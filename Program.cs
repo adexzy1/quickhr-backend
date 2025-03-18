@@ -84,6 +84,18 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+// Add CORS policy
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigin",
+        policy =>
+        {
+            policy.WithOrigins("https://app.qwikhr.com", "http://localhost:5173") // Replace with your frontend domain
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+});
+
 // reositories
 builder.Services.AddScoped<IBranchRepository, BranchRepository>();
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
@@ -109,6 +121,7 @@ if (app.Environment.IsProduction())
 {
     app.UseHttpsRedirection();
 }
+app.UseCors("AllowSpecificOrigins");
 app.ApplyMigrations();
 app.UseAuthentication();
 app.UseAuthorization();
