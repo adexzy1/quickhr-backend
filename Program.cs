@@ -18,6 +18,19 @@ Env.Load();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Add CORS policy
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAllOrigins",
+        builder =>
+        {
+            builder.AllowAnyOrigin() // Allow requests from any origin
+                   .AllowAnyMethod() // Allow all HTTP methods (GET, POST, PUT, DELETE, OPTIONS, etc.)
+                   .AllowAnyHeader(); // Allow all headers
+        });
+});
+
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add(new AuthorizeFilter());
@@ -84,17 +97,6 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Add CORS policy
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowSpecificOrigin",
-        policy =>
-        {
-            policy.WithOrigins("https://app.qwikhr.com", "http://localhost:5173") // Replace with your frontend domain
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
-        });
-});
 
 // reositories
 builder.Services.AddScoped<IBranchRepository, BranchRepository>();
@@ -109,6 +111,23 @@ builder.Services.AddFluentEnail();
 
 var app = builder.Build();
 
+// Middleware to handle OPTIONS requests
+app.Use(async (context, next) =>
+{
+    if (context.Request.Method == "OPTIONS")
+    {
+        context.Response.StatusCode = 204;
+        context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
+        context.Response.Headers.Append("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        context.Response.Headers.Append("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        await context.Response.CompleteAsync();
+    }
+    else
+    {
+        await next();
+    }
+});
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -121,7 +140,8 @@ if (app.Environment.IsProduction())
 {
     app.UseHttpsRedirection();
 }
-app.UseCors("AllowSpecificOrigins");
+
+app.UseCors("AllowAllOrigins");
 app.ApplyMigrations();
 app.UseAuthentication();
 app.UseAuthorization();
