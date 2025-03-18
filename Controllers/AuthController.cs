@@ -13,13 +13,14 @@ namespace qwikhr.Controllers
 {
     [Route("api/auth")]
     [ApiController]
-    public class AuthController(UserManager<User> userManager, ApplicationDbContext context, CreateAdminAccountService createAdminService, ITokenService tokenService, SignInManager<User> signInManager) : ControllerBase
+    public class AuthController(UserManager<User> userManager, ApplicationDbContext context, CreateAdminAccountService createAdminService, ITokenService tokenService, IEmailService emailService, SignInManager<User> signInManager) : ControllerBase
     {
         private readonly UserManager<User> _userManager = userManager;
         private readonly ApplicationDbContext _context = context;
         private readonly CreateAdminAccountService _createAdminService = createAdminService;
         private readonly ITokenService _tokenService = tokenService;
         private readonly SignInManager<User> _signInManager = signInManager;
+        private readonly IEmailService _emailService = emailService;
 
         [AllowAnonymous]
         [HttpPost("register")]
@@ -30,7 +31,11 @@ namespace qwikhr.Controllers
             {
                 return BadRequest(new { message = Message });
             }
-
+            if (!string.IsNullOrEmpty(adminUserDto?.Email))
+            {
+                EmailMetadata emailMetadata = new(adminUserDto.Email, "Email verification code", "1234");
+                await _emailService.Send(emailMetadata);
+            }
             return Ok(new { message = Message, data = adminUserDto });
         }
 
@@ -60,6 +65,11 @@ namespace qwikhr.Controllers
             if (!result.Succeeded)
             {
                 return Unauthorized(new { message = "Invalid Credentials" });
+            }
+
+            if (result.IsNotAllowed)
+            {
+                ModelState.AddModelError("root", "You need to confirm your email before logging in.");
             }
 
             if (roles?.Contains("Admin") == true)

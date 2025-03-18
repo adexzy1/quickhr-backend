@@ -43,6 +43,7 @@ builder.Services.AddIdentity<User, IdentityRole<int>>(options =>
     options.Password.RequiredUniqueChars = 1;
     options.Password.RequireUppercase = true;
     options.User.RequireUniqueEmail = true;
+    options.SignIn.RequireConfirmedEmail = true;
 }).AddEntityFrameworkStores<ApplicationDbContext>();
 
 builder.Services.AddAuthentication(options =>
@@ -91,6 +92,8 @@ builder.Services.AddScoped<IRegionRepository, RegionRepository>();
 // services
 builder.Services.AddScoped<CreateAdminAccountService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddFluentEnail();
 
 var app = builder.Build();
 
