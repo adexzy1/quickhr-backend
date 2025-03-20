@@ -13,6 +13,7 @@ using qwikhr.Extensions;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.Slack;
+using qwikhr.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
@@ -122,6 +123,7 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddFluentEnail();
 builder.Services.AddScoped<IOtpService, OtpService>();
+builder.Services.AddSingleton<JwtCookieService>();
 
 var app = builder.Build();
 
@@ -156,6 +158,7 @@ if (app.Environment.IsProduction())
 }
 
 app.UseCors("AllowAllOrigins");
+app.UseMiddleware<JwtCookieOrHeaderMiddleware>();
 app.ApplyMigrations();
 app.UseAuthentication();
 app.UseAuthorization();

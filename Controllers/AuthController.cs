@@ -13,7 +13,7 @@ namespace qwikhr.Controllers
 {
     [Route("api/auth")]
     [ApiController]
-    public class AuthController(UserManager<User> userManager, ApplicationDbContext context, CreateAdminAccountService createAdminService, ITokenService tokenService, IEmailService emailService, SignInManager<User> signInManager, IOtpService otpService, ILogger<AuthController> logger) : ControllerBase
+    public class AuthController(UserManager<User> userManager, ApplicationDbContext context, CreateAdminAccountService createAdminService, ITokenService tokenService, IEmailService emailService, SignInManager<User> signInManager, IOtpService otpService, ILogger<AuthController> logger, JwtCookieService cookieService) : ControllerBase
     {
         private readonly UserManager<User> _userManager = userManager;
         private readonly ApplicationDbContext _context = context;
@@ -22,6 +22,7 @@ namespace qwikhr.Controllers
         private readonly SignInManager<User> _signInManager = signInManager;
         private readonly IEmailService _emailService = emailService;
         private readonly ILogger<AuthController> _logger = logger;
+        private readonly JwtCookieService _cookieService = cookieService;
 
         private readonly IOtpService _otpService = otpService;
 
@@ -52,6 +53,9 @@ namespace qwikhr.Controllers
             {
                 return BadRequest(ModelState);
             }
+
+            // Check if the request is from a browser (you can improve this check)
+            bool isWebRequest = Request.Headers.UserAgent.ToString().Contains("Mozilla");
 
             try
             {
@@ -98,6 +102,13 @@ namespace qwikhr.Controllers
                     return Unauthorized(new { message = "Invalid credentials." });
                 }
 
+                var token = _tokenService.CreateToken(user);
+
+                if (isWebRequest)
+                {
+                    _cookieService.SetJwtCookie(HttpContext, token);
+                }
+
                 // Prepare the response based on the user's role
                 if (roles?.Contains("Admin") == true)
                 {
@@ -109,7 +120,7 @@ namespace qwikhr.Controllers
                         Company = user.Company?.ToCompanyDto(),
                         EmailVerified = user.EmailConfirmed,
                         Roles = roles.ToList(),
-                        Token = _tokenService.CreateToken(user)
+                        Token = token
                     };
 
                     return Ok(new { message = "Logged in successfully.", data = adminUserDto });
