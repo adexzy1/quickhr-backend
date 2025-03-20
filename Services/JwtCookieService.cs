@@ -8,11 +8,9 @@ namespace qwikhr.Services
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,
+                Secure = false,
                 SameSite = SameSiteMode.None,
                 Expires = DateTime.UtcNow.AddDays(7),
-                Domain = ".qwikhr.com",
-                Path = "/"
             };
 
             httpContext.Response.Cookies.Append(CookieName, token, cookieOptions);
