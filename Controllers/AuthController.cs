@@ -13,7 +13,7 @@ namespace qwikhr.Controllers
 {
     [Route("api/auth")]
     [ApiController]
-    public class AuthController(UserManager<User> userManager, ApplicationDbContext context, CreateAdminAccountService createAdminService, ITokenService tokenService, IEmailService emailService, SignInManager<User> signInManager) : ControllerBase
+    public class AuthController(UserManager<User> userManager, ApplicationDbContext context, CreateAdminAccountService createAdminService, ITokenService tokenService, IEmailService emailService, SignInManager<User> signInManager, IOtpService otpService, ILogger<AuthController> logger) : ControllerBase
     {
         private readonly UserManager<User> _userManager = userManager;
         private readonly ApplicationDbContext _context = context;
@@ -21,6 +21,9 @@ namespace qwikhr.Controllers
         private readonly ITokenService _tokenService = tokenService;
         private readonly SignInManager<User> _signInManager = signInManager;
         private readonly IEmailService _emailService = emailService;
+        private readonly ILogger<AuthController> _logger = logger;
+
+        private readonly IOtpService _otpService = otpService;
 
         [AllowAnonymous]
         [HttpPost("register")]
@@ -33,7 +36,8 @@ namespace qwikhr.Controllers
             }
             if (!string.IsNullOrEmpty(adminUserDto?.Email))
             {
-                EmailMetadata emailMetadata = new(adminUserDto.Email, "Email verification code", "1234");
+                var otp = await _otpService.GenerateOtp(adminUserDto.Id, OtpPurpose.EmailVerification);
+                EmailMetadata emailMetadata = new(adminUserDto.Email, "Email verification code", otp);
                 await _emailService.Send(emailMetadata);
             }
             return Ok(new { message = Message, data = adminUserDto });
@@ -43,51 +47,129 @@ namespace qwikhr.Controllers
         [HttpPost("admin/login")]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            var user = await _userManager.Users.Include(u => u.Company).FirstOrDefaultAsync(u => u.Email.ToLower() == loginDto.Email.ToLower());
 
-            if (user == null)
+            try
             {
-                return Unauthorized(new { message = "Account not Found" });
-            }
-            var roles = await _userManager.GetRolesAsync(user);
+                // Find the user by email (case-insensitive)
+                var user = await _userManager.Users
+                    .Include(u => u.Company)
+                    .FirstOrDefaultAsync(u => u.Email.ToLower() == loginDto.Email.ToLower());
 
-            if (roles?.Contains("Emloyee") == true)
-            {
-                return Unauthorized(new { message = "UnAuthorized" });
-            }
-
-            var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
-
-            if (!result.Succeeded)
-            {
-                return Unauthorized(new { message = "Invalid Credentials" });
-            }
-
-            if (result.IsNotAllowed)
-            {
-                ModelState.AddModelError("root", "You need to confirm your email before logging in.");
-            }
-
-            if (roles?.Contains("Admin") == true)
-            {
-                var adminUserDto = new AdminUserDto
+                if (user == null)
                 {
-                    Id = user.Id,
-                    Slug = user.Slug,
-                    Email = user.Email,
-                    Company = user.Company?.ToCompanyDto(),
-                    EmailVerified = user.EmailConfirmed,
-                    Roles = [.. roles],
-                    Token = _tokenService.CreateToken(user),
+                    return Unauthorized(new { message = "Account not found." });
+                }
 
-                };
-                return Ok(new { message = "Logged in successfully", data = adminUserDto });
+                // Check if the user is an employee (assuming "Employee" is the correct role name)
+                var roles = await _userManager.GetRolesAsync(user);
+                if (roles?.Contains("Employee") == true)
+                {
+                    return Unauthorized(new { message = "Unauthorized access." });
+                }
+
+                // Check if the email is confirmed
+                if (!await _userManager.IsEmailConfirmedAsync(user))
+                {
+                    var latestOtp = await _context.Otps
+                        .Where(o => o.UserId == user.Id && o.ExpiryTime > DateTime.UtcNow)
+                        .OrderByDescending(o => o.ExpiryTime)
+                        .FirstOrDefaultAsync();
+
+                    if (latestOtp == null)
+                    {
+                        // Generate and send a new OTP if no valid OTP exists
+                        var otp = await _otpService.GenerateOtp(user.Id, OtpPurpose.EmailVerification);
+                        EmailMetadata emailMetadata = new(loginDto.Email, "Email verification code", otp);
+                        await _emailService.Send(emailMetadata);
+                    }
+
+                    return Unauthorized(new { message = "Email not verified. Please check your email and confirm it." });
+                }
+
+                // Verify the password
+                var passwordCheckResult = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
+                if (!passwordCheckResult.Succeeded)
+                {
+                    return Unauthorized(new { message = "Invalid credentials." });
+                }
+
+                // Prepare the response based on the user's role
+                if (roles?.Contains("Admin") == true)
+                {
+                    var adminUserDto = new AdminUserDto
+                    {
+                        Id = user.Id,
+                        Slug = user.Slug,
+                        Email = user.Email,
+                        Company = user.Company?.ToCompanyDto(),
+                        EmailVerified = user.EmailConfirmed,
+                        Roles = roles.ToList(),
+                        Token = _tokenService.CreateToken(user)
+                    };
+
+                    return Ok(new { message = "Logged in successfully.", data = adminUserDto });
+                }
+
+                // For non-admin users
+                return Ok(new { message = "Logged in successfully.", data = user });
             }
-            return Ok(new { message = "Logged in successfully", data = user });
+            catch (Exception e)
+            {
+                if (e is DbUpdateException dbEx && dbEx.InnerException != null)
+                {
+                    _logger.LogError(dbEx.InnerException, "Database update failed: {Message}", dbEx.InnerException.Message);
+                }
+                else
+                {
+                    _logger.LogError(e, "An error occurred: {Message}", e.Message);
+                }
+                return StatusCode(500, new { message = "An error occurred while processing your request. Please try again later." });
+
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpPost("verify-email")]
+        public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmaillDto verifyEmaillDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            try
+            {
+                var user = await _userManager.FindByEmailAsync(verifyEmaillDto.Email);
+                if (user == null)
+                {
+                    return NotFound(new { message = "User not found." });
+                }
+
+                if (!await _otpService.ValidateOtp(user.Id, verifyEmaillDto.Otp, OtpPurpose.EmailVerification))
+                {
+                    user.EmailConfirmed = true;
+                    await _userManager.UpdateAsync(user);
+                    return Ok("Email verified successfully.");
+                }
+                return UnprocessableEntity(new { message = "Invalid or expired OTP." });
+            }
+            catch (Exception e)
+            {
+                if (e is DbUpdateException dbEx && dbEx.InnerException != null)
+                {
+                    _logger.LogError(dbEx.InnerException, "Database update failed: {Message}", dbEx.InnerException.Message);
+                }
+                else
+                {
+                    _logger.LogError(e, "An error occurred: {Message}", e.Message);
+                }
+                return StatusCode(500, new { message = "An error occurred while processing your request. Please try again later." });
+
+            }
         }
     }
 }

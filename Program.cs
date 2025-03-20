@@ -10,6 +10,9 @@ using Microsoft.IdentityModel.Tokens;
 using qwikhr.Services;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using qwikhr.Extensions;
+using Serilog;
+using Serilog.Events;
+using Serilog.Sinks.Slack;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
@@ -43,7 +46,6 @@ var dbHost = Environment.GetEnvironmentVariable("DB_HOST");
 
 
 var connectionString = $"Server={dbHost};Database={dbName};User Id={dbUser};Password={dbPassword};";
-Console.WriteLine(connectionString);
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
@@ -58,6 +60,17 @@ builder.Services.AddIdentity<User, IdentityRole<int>>(options =>
     options.User.RequireUniqueEmail = true;
     options.SignIn.RequireConfirmedEmail = true;
 }).AddEntityFrameworkStores<ApplicationDbContext>();
+
+// Configure Serilog with Slack sink
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Slack(
+        webhookUrl: Environment.GetEnvironmentVariable("SLACK_WEBHOOK_URL"),
+        restrictedToMinimumLevel: LogEventLevel.Error,
+        period: TimeSpan.FromSeconds(5),
+        customChannel: Environment.GetEnvironmentVariable("SLACK_CHANNEL"),
+        customUsername: Environment.GetEnvironmentVariable("SLACK_USERNAME"),
+        customIcon: ":ghost:")
+    .CreateLogger();
 
 builder.Services.AddAuthentication(options =>
 {
@@ -108,6 +121,7 @@ builder.Services.AddScoped<CreateAdminAccountService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddFluentEnail();
+builder.Services.AddScoped<IOtpService, OtpService>();
 
 var app = builder.Build();
 

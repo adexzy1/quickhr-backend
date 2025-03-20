@@ -15,6 +15,7 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<int>, i
     public DbSet<Department> Departments { get; set; }
     public DbSet<Region> Regions { get; set; }
     public DbSet<Position> Positions { get; set; }
+    public DbSet<Otp> Otps { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -52,6 +53,7 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<int>, i
             });
 
         builder.Entity<IdentityRole<int>>().HasData(roles);
+        builder.Entity<Otp>().HasOne(o => o.User).WithMany().HasForeignKey(o => o.UserId).OnDelete(DeleteBehavior.Cascade);
     }
 
 
