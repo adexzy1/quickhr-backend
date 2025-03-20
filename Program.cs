@@ -29,8 +29,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAllOrigins",
         builder =>
         {
-            builder.AllowCredentials()
-                    .AllowAnyOrigin() // Allow requests from any origin
+            builder.WithOrigins("https://app.qwikhr.com", "http://localhost:5173")
+                    .AllowCredentials() // Allow requests from any origin
                    .AllowAnyMethod() // Allow all HTTP methods (GET, POST, PUT, DELETE, OPTIONS, etc.)
                    .AllowAnyHeader(); // Allow all headers
         });
