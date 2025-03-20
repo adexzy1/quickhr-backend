@@ -11,7 +11,8 @@ namespace qwikhr.Services
                 Secure = true,
                 SameSite = SameSiteMode.None,
                 Expires = DateTime.UtcNow.AddDays(7),
-                Domain = ".qwikhr.com"
+                Domain = ".qwikhr.com",
+                Path = "/"
             };
 
             httpContext.Response.Cookies.Append(CookieName, token, cookieOptions);

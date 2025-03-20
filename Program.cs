@@ -26,7 +26,7 @@ builder.Services.AddSwaggerGen();
 // Add CORS policy
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAllOrigins",
+    options.AddPolicy("AllowSpecificOrigins",
         builder =>
         {
             builder.WithOrigins("https://app.qwikhr.com", "http://localhost:5173")
@@ -158,7 +158,7 @@ if (app.Environment.IsProduction())
     app.UseHttpsRedirection();
 }
 
-app.UseCors("AllowAllOrigins");
+app.UseCors("AllowSpecificOrigins");
 app.UseMiddleware<JwtCookieOrHeaderMiddleware>();
 app.ApplyMigrations();
 app.UseAuthentication();
