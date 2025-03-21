@@ -20,7 +20,7 @@ namespace qwikhr.Middleware
             else
             {
                 // Try to get JWT from Cookies (for web)
-                context.Request.Cookies.TryGetValue("jwt", out token);
+                context.Request.Cookies.TryGetValue("accessToken", out token);
             }
 
             if (!string.IsNullOrEmpty(token))
