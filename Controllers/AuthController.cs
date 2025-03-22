@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -181,6 +182,62 @@ namespace qwikhr.Controllers
                 return StatusCode(500, new { message = "An error occurred while processing your request. Please try again later." });
 
             }
+        }
+
+
+        [HttpGet("me")]
+        public async Task<IActionResult> GetCurrentUser()
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var user = await _userManager.Users
+                       .Include(u => u.Company)
+                       .FirstOrDefaultAsync(u => userId != null && u.Id == int.Parse(userId));
+
+                if (user == null)
+                {
+                    return Unauthorized(new { message = "Account not found." });
+                }
+
+                // Check if the user is an employee (assuming "Employee" is the correct role name)
+                var roles = await _userManager.GetRolesAsync(user);
+                if (roles?.Contains("Employee") == true)
+                {
+                    return Unauthorized(new { message = "Unauthorized access." });
+                }
+
+                if (roles?.Contains("Admin") == true)
+                {
+                    var adminUserDto = new AdminUserDto
+                    {
+                        Id = user.Id,
+                        Slug = user.Slug,
+                        Email = user.Email,
+                        Company = user.Company?.ToCompanyDto(),
+                        Roles = [.. roles],
+                    };
+
+                    return Ok(new { message = "Success", data = adminUserDto });
+                }
+
+                // For non-admin users
+                return Ok(new { message = "Success", data = user });
+            }
+            catch (Exception e)
+            {
+                if (e is DbUpdateException dbEx && dbEx.InnerException != null)
+                {
+                    _logger.LogError(dbEx.InnerException, "Database update failed: {Message}", dbEx.InnerException.Message);
+                }
+                else
+                {
+                    _logger.LogError(e, "An error occurred: {Message}", e.Message);
+                }
+                return StatusCode(500, new { message = "An error occurred while processing your request. Please try again later." });
+
+            }
+
         }
     }
 }
