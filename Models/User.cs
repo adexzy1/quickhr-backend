@@ -18,11 +18,10 @@ public class User : IdentityUser<int>
 
     public bool Status { get; set; } = true;
 
-    [ForeignKey("Employee")]
-    public int EmployeeId { get; set; }
-
-    [ForeignKey("FK_CompanyId")]
-    public int CompanyId { get; set; }
+    [ForeignKey("EmployeeId")]
+    public Employee? Employee { get; set; }
+    public Guid CompanyId { get; set; }
+    [ForeignKey("CompanyId")]
     public Company? Company { get; set; }
 }
 

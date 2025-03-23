@@ -31,6 +31,7 @@ namespace qwikhr.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
         {
+            Console.Write("started vreating");
             var (IsSuccess, adminUserDto, Message) = await _createAdminService.RegisterUserWithCompanyAsync(registerDto.Email, registerDto.Password, registerDto.CompanyName);
             if (!IsSuccess)
             {

@@ -7,11 +7,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 public class Company
 {
     [Key]
-    public int Id { get; set; }
-
-    public Guid? Slug { get; set; } = Guid.NewGuid();
+    public Guid Id { get; set; } = Guid.NewGuid();
 
     [Required]
     [MaxLength(50)]
-    public string? Name { get; set; }
+    public required string Name { get; set; }
 }

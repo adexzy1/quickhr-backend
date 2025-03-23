@@ -1,40 +1,29 @@
-namespace qwikhr.Models;
-
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-[Table("employees")]
+using qwikhr.Common;
 
-public class Employee
+namespace qwikhr.Models
 {
-    [Key]
-    public int Id { get; set; }
+    public class Employee : CompanyEntity
+    {
+        [Key]
+        public Guid Id { get; set; } = Guid.NewGuid();
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string PhoneNumber { get; set; } = string.Empty;
+        public string Position { get; set; } = string.Empty;
 
-    public Guid? Slug { get; set; } = Guid.NewGuid();
+        public decimal Salary { get; set; }
+        public string Department { get; set; } = string.Empty;
 
-    [Required]
-    [MaxLength(50)]
-    public string? FirstName { get; set; }
+        public Guid? ManagerId { get; set; }
+        [ForeignKey("ManagerId")]
+        public Employee? Manager { get; set; }
 
-    [Required]
-    [MaxLength(50)]
-    public string? LastName { get; set; }
+        public ICollection<EmployeeLeaveBalance> LeaveBalances { get; set; } = [];
+        public ICollection<LeaveRequest> LeaveRequests { get; set; } = [];
+        public ICollection<ShiftSchedule> ShiftSchedules { get; set; } = [];
+    }
 
-    [Required]
-    [EnumDataType(typeof(EmployeeStatus))]
-    public EmployeeStatus Status { get; set; }
-
-    [ForeignKey("FK_CompanyId")]
-    public int CompanyId { get; set; }
-    public Company? Company { get; set; }
-}
-
-public enum EmployeeStatus
-{
-    Onboarding,
-    Offboarding,
-    OnLeave,
-    Immigration,
-    Active,
-    Suspended,
-    Exited
 }

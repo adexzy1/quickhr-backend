@@ -24,9 +24,9 @@ namespace qwikhr.Controllers
         }
 
         [HttpGet("{slug}")]
-        public async Task<IActionResult> GetBySlug([FromRoute] Guid slug)
+        public async Task<IActionResult> GetBySlug([FromRoute] Guid id)
         {
-            var company = await _companyRepo.GetBySlugAsync(slug);
+            var company = await _companyRepo.GetByIdAsync(id);
             if (company == null)
             {
                 return NotFound();
@@ -39,7 +39,7 @@ namespace qwikhr.Controllers
         {
             var companyModel = companyDto.ToCompanyFromCompanyDto();
             var createdItem = await _companyRepo.CreateAsync(companyModel);
-            return CreatedAtAction(nameof(GetBySlug), new { slug = companyModel.Slug }, createdItem);
+            return CreatedAtAction(nameof(GetBySlug), new { id = companyModel.Id }, createdItem);
         }
 
         [HttpPut("{slug}")]

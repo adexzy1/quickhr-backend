@@ -11,7 +11,6 @@ namespace qwikhr.Mappers
             {
                 Id = comapyModel.Id,
                 Name = comapyModel.Name,
-                Slug = comapyModel.Slug
             };
         }
 
@@ -20,7 +19,6 @@ namespace qwikhr.Mappers
             return new Company
             {
                 Name = companyDto.Name,
-                Slug = Guid.NewGuid(),
             };
         }
     }

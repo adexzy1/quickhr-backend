@@ -2,23 +2,18 @@ namespace qwikhr.Models;
 
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using qwikhr.Common;
+
 [Table("regions")]
 
-public class Region
+public class Region : CompanyEntity
 {
     [Key]
-    public int Id { get; set; }
-
-    public Guid Slug { get; set; } = Guid.NewGuid();
+    public Guid Id { get; set; } = Guid.NewGuid();
 
     [Required]
     [MaxLength(50)]
-    public string? Name { get; set; }
-
-    [ForeignKey("FK_CompanyId")]
-    public int CompanyId { get; set; }
-
-    public Company? Company { get; set; }
+    public required string Name { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

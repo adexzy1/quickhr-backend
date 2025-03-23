@@ -21,7 +21,8 @@ namespace qwikhr.Services
         {
             var claims = new List<Claim>{
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Email, user.Email.ToString())
+                new Claim(ClaimTypes.Email, user.Email.ToString()),
+                new Claim("CompanyId", user.CompanyId.ToString()),
             };
             var creds = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature);
 

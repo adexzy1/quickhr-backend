@@ -21,9 +21,9 @@ namespace qwikhr.Repository
             return branchModel;
         }
 
-        public async Task<Company?> DeleteAsync(Guid slug)
+        public async Task<Company?> DeleteAsync(Guid id)
         {
-            var companyModel = await _context.Companies.FirstOrDefaultAsync(c => c.Slug == slug);
+            var companyModel = await _context.Companies.FirstOrDefaultAsync(c => c.Id == id);
             if (companyModel == null)
             {
                 return null;
@@ -39,9 +39,9 @@ namespace qwikhr.Repository
             return await companies.ToListAsync();
         }
 
-        public async Task<Company?> GetBySlugAsync(Guid slug)
+        public async Task<Company?> GetByIdAsync(Guid id)
         {
-            var companyModel = await _context.Companies.FirstOrDefaultAsync(c => c.Slug == slug);
+            var companyModel = await _context.Companies.FirstOrDefaultAsync(c => c.Id == id);
             if (companyModel == null)
             {
                 return null;
@@ -49,9 +49,9 @@ namespace qwikhr.Repository
             return companyModel;
         }
 
-        public async Task<Company?> UpdateAsync(Guid slug, UpdateCompanyDto companyDto)
+        public async Task<Company?> UpdateAsync(Guid id, UpdateCompanyDto companyDto)
         {
-            var companyModel = await _context.Companies.FirstOrDefaultAsync(c => c.Slug == slug);
+            var companyModel = await _context.Companies.FirstOrDefaultAsync(c => c.Id == id);
             if (companyModel == null)
             {
                 return null;

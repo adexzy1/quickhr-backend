@@ -12,7 +12,6 @@ namespace qwikhr.Mappers
             return new RegionDto
             {
                 Id = regionModel.Id,
-                Slug = regionModel.Slug,
                 Name = regionModel.Name,
                 CreatedAt = regionModel.CreatedAt,
                 CompanyId = regionModel.CompanyId
@@ -24,8 +23,6 @@ namespace qwikhr.Mappers
             return new Region
             {
                 Name = createDto.Name,
-                CompanyId = createDto.CompanyId,
-                Slug = Guid.NewGuid()
             };
         }
     }

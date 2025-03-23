@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using qwikhr.Data;
 using qwikhr.Dtos.Region;
+using qwikhr.helper;
 using qwikhr.Interfaces;
 using qwikhr.Models;
 
@@ -17,9 +18,9 @@ namespace qwikhr.Repository
             return regionModel;
         }
 
-        public async Task<Region?> DeleteAsync(Guid slug)
+        public async Task<Region?> DeleteAsync(Guid id)
         {
-            var regionModel = await _context.Regions.FirstOrDefaultAsync(r => r.Slug == slug);
+            var regionModel = await _context.Regions.FirstOrDefaultAsync(r => r.Id == id);
             if (regionModel == null)
             {
                 return null;
@@ -35,9 +36,9 @@ namespace qwikhr.Repository
             return regions.ToListAsync();
         }
 
-        public async Task<Region?> GetBySlugAsync(Guid slug)
+        public async Task<Region?> GetByIdAsync(Guid id)
         {
-            var regionModel = await _context.Regions.FirstOrDefaultAsync(r => r.Slug == slug);
+            var regionModel = await _context.Regions.FirstOrDefaultAsync(r => r.Id == id);
             if (regionModel == null)
             {
                 return null;
@@ -45,9 +46,9 @@ namespace qwikhr.Repository
             return regionModel;
         }
 
-        public async Task<Region?> UpdateAsync(Guid slug, UpdateRegionDto regionDto)
+        public async Task<Region?> UpdateAsync(Guid id, UpdateRegionDto regionDto)
         {
-            var regionModel = await _context.Regions.FirstOrDefaultAsync(r => r.Slug == slug);
+            var regionModel = await _context.Regions.FirstOrDefaultAsync(r => r.Id == id);
             if (regionModel == null)
             {
                 return null;

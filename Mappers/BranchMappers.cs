@@ -10,19 +10,17 @@ namespace qwikhr.Mappers
             return new BranchDto
             {
                 Id = branchModel.Id,
-                Slug = branchModel.Slug,
                 CompanyId = branchModel.CompanyId,
                 Name = branchModel.Name
             };
         }
 
-        public static Branch ToBranchFromCreateDto(this CreateBranchDto branchDto, int companyId)
+        public static Branch ToBranchFromCreateDto(this CreateBranchDto branchDto, Guid companyId)
         {
             return new Branch
             {
                 Name = branchDto.Name,
                 CompanyId = companyId,
-                Slug = Guid.NewGuid()
             };
         }
     }

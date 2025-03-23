@@ -22,9 +22,9 @@ namespace qwikhr.Repository
             return branchModel;
         }
 
-        public async Task<Branch?> DeleteAsync(Guid slug)
+        public async Task<Branch?> DeleteAsync(Guid id)
         {
-            var branchModel = await _context.Branches.FirstOrDefaultAsync(b => b.Slug == slug);
+            var branchModel = await _context.Branches.FirstOrDefaultAsync(b => b.Id == id);
             if (branchModel == null)
             {
                 return null;
@@ -40,9 +40,9 @@ namespace qwikhr.Repository
         }
 
 
-        public async Task<Branch?> GetBySlugAsync(Guid slug)
+        public async Task<Branch?> GetByIdAsync(Guid Id)
         {
-            var branchModel = await _context.Branches.FirstOrDefaultAsync(b => b.Slug == slug);
+            var branchModel = await _context.Branches.FirstOrDefaultAsync(b => b.Id == Id);
             if (branchModel == null)
             {
                 return null;
@@ -52,9 +52,9 @@ namespace qwikhr.Repository
 
 
 
-        public async Task<Branch?> UpdateAsync(Guid slug, UpdateBranchDto branchDto)
+        public async Task<Branch?> UpdateAsync(Guid Id, UpdateBranchDto branchDto)
         {
-            var branchModel = await _context.Branches.FirstOrDefaultAsync(b => b.Slug == slug);
+            var branchModel = await _context.Branches.FirstOrDefaultAsync(b => b.Id == Id);
             if (branchModel == null)
             {
                 return null;

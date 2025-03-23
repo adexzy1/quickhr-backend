@@ -24,7 +24,6 @@ namespace qwikhr.Services
                 var company = new Company
                 {
                     Name = companyName,
-                    Slug = Guid.NewGuid()
                 };
 
                 var createdCompany = await _companyRepository.CreateAsync(company);
@@ -39,8 +38,8 @@ namespace qwikhr.Services
                 {
                     UserName = email.ToLower(),
                     Email = email,
-                    CompanyId = createdCompany.Id,
-                    Status = true
+                    Status = true,
+                    CompanyId = createdCompany.Id
                 };
 
                 var result = await _userManager.CreateAsync(user, password);
@@ -64,6 +63,7 @@ namespace qwikhr.Services
                         Slug = createdUser.Slug,
                         Id = createdUser.Id,
                         Email = createdUser.Email,
+                        Company = createdCompany.ToCompanyDto()
                     }
                     ,
                     "Account Created Successfully"

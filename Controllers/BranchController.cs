@@ -26,9 +26,9 @@ namespace qwikhr.Controllers
         }
 
         [HttpGet("{slug}")]
-        public async Task<IActionResult> GetBySlug([FromRoute] Guid slug)
+        public async Task<IActionResult> GetBySlug([FromRoute] Guid id)
         {
-            var branch = await _branchRepo.GetBySlugAsync(slug);
+            var branch = await _branchRepo.GetByIdAsync(id);
             if (branch == null)
             {
                 return NotFound();
@@ -37,11 +37,11 @@ namespace qwikhr.Controllers
         }
 
         [HttpPost("{companyId:int}")]
-        public async Task<IActionResult> Create([FromRoute] int companyId, [FromBody] CreateBranchDto branchdto)
+        public async Task<IActionResult> Create([FromRoute] Guid companyId, [FromBody] CreateBranchDto branchdto)
         {
             var branchModel = branchdto.ToBranchFromCreateDto(companyId);
             await _branchRepo.CreateAsync(branchModel);
-            return CreatedAtAction(nameof(GetBySlug), new { slug = branchModel.Slug }, branchModel.ToBranchDto());
+            return CreatedAtAction(nameof(GetBySlug), new { id = branchModel.Id }, branchModel.ToBranchDto());
         }
 
         [HttpPut("{slug}")]

@@ -14,6 +14,8 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.Slack;
 using qwikhr.Middleware;
+using qwikhr.Interceptors;
+using qwikhr.helper;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
@@ -49,8 +51,10 @@ var dbHost = Environment.GetEnvironmentVariable("DB_HOST");
 
 var connectionString = $"Server={dbHost};Database={dbName};User Id={dbUser};Password={dbPassword};";
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(connectionString));
+builder.Services.AddDbContext<ApplicationDbContext>((sp, options) =>
+{
+    options.UseNpgsql(connectionString).AddInterceptors(sp.GetRequiredService<CompanyIdInterceptor>());
+});
 
 // Authentication
 builder.Services.AddIdentity<User, IdentityRole<int>>(options =>
@@ -73,6 +77,8 @@ Log.Logger = new LoggerConfiguration()
         customUsername: Environment.GetEnvironmentVariable("SLACK_USERNAME"),
         customIcon: ":ghost:")
     .CreateLogger();
+
+builder.Host.UseSerilog();
 
 builder.Services.AddAuthentication(options =>
 {
@@ -125,6 +131,10 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddFluentEnail();
 builder.Services.AddScoped<IOtpService, OtpService>();
 builder.Services.AddSingleton<JwtCookieService>();
+builder.Services.AddScoped<UserContextHelper>();
+
+//interceptors
+builder.Services.AddScoped<CompanyIdInterceptor>();
 
 var app = builder.Build();
 
