@@ -15,6 +15,8 @@ public class User : IdentityUser<int>
 
     [MaxLength(50)]
     public string? LastName { get; set; }
+    [MaxLength(50)]
+    public string? MiddleName { get; set; }
 
     public bool Status { get; set; } = true;
 

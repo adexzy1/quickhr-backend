@@ -149,6 +149,7 @@ app.UseRouting();
 if (app.Environment.IsProduction())
 {
     app.UseHttpsRedirection();
+    app.ApplyMigrations();
 }
 
 app.UseCors("AllowSpecificOrigins");
@@ -167,7 +168,6 @@ app.Use(async (context, next) =>
     await next();
 });
 app.UseMiddleware<JwtCookieOrHeaderMiddleware>();
-app.ApplyMigrations();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

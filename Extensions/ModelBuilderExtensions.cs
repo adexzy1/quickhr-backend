@@ -28,7 +28,7 @@ namespace qwikhr.Extensions
             builder.Entity<User>()
             .HasOne(u => u.Company)
             .WithMany()
-            .HasForeignKey(u => u.CompanyId)  // Ensure foreign key mapping
+            .HasForeignKey(u => u.CompanyId)
             .OnDelete(DeleteBehavior.Restrict);
 
             builder.Entity<LeaveRequest>()
@@ -36,6 +36,12 @@ namespace qwikhr.Extensions
             .WithMany(e => e.LeaveRequests)
             .HasForeignKey(lr => lr.EmployeeId)
             .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<Department>()
+            .HasOne(d => d.Manager)
+            .WithMany()
+            .HasForeignKey(d => d.ManagerId)
+            .OnDelete(DeleteBehavior.SetNull);
         }
     }
 

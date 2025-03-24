@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace qwikhr.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialDbMigrstion : Migration
+    public partial class InitialDbMigrtion : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -84,56 +84,6 @@ namespace qwikhr.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "departments",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    Name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    CompanyId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_departments", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_departments_companies_CompanyId",
-                        column: x => x.CompanyId,
-                        principalTable: "companies",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Employees",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    FirstName = table.Column<string>(type: "text", nullable: false),
-                    LastName = table.Column<string>(type: "text", nullable: false),
-                    Email = table.Column<string>(type: "text", nullable: false),
-                    PhoneNumber = table.Column<string>(type: "text", nullable: false),
-                    Position = table.Column<string>(type: "text", nullable: false),
-                    Salary = table.Column<decimal>(type: "numeric", nullable: false),
-                    Department = table.Column<string>(type: "text", nullable: false),
-                    ManagerId = table.Column<Guid>(type: "uuid", nullable: true),
-                    CompanyId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Employees", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Employees_Employees_ManagerId",
-                        column: x => x.ManagerId,
-                        principalTable: "Employees",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Employees_companies_CompanyId",
-                        column: x => x.CompanyId,
-                        principalTable: "companies",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "LeaveTypes",
                 columns: table => new
                 {
@@ -148,6 +98,48 @@ namespace qwikhr.Migrations
                     table.PrimaryKey("PK_LeaveTypes", x => x.Id);
                     table.ForeignKey(
                         name: "FK_LeaveTypes_companies_CompanyId",
+                        column: x => x.CompanyId,
+                        principalTable: "companies",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PayComponent",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Value = table.Column<decimal>(type: "numeric", nullable: false),
+                    IsPercentage = table.Column<bool>(type: "boolean", nullable: false),
+                    IsAllowance = table.Column<bool>(type: "boolean", nullable: false),
+                    CompanyId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PayComponent", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PayComponent_companies_CompanyId",
+                        column: x => x.CompanyId,
+                        principalTable: "companies",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PayGrade",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    BaseSalary = table.Column<decimal>(type: "numeric", nullable: false),
+                    CompanyId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PayGrade", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PayGrade_companies_CompanyId",
                         column: x => x.CompanyId,
                         principalTable: "companies",
                         principalColumn: "Id",
@@ -195,6 +187,111 @@ namespace qwikhr.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "PayGrdaePayComponent",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    PayGradeId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    PayComponentId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    CompanyId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PayGrdaePayComponent", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PayGrdaePayComponent_PayComponent_PayComponentId",
+                        column: x => x.PayComponentId,
+                        principalTable: "PayComponent",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PayGrdaePayComponent_PayGrade_PayGradeId",
+                        column: x => x.PayGradeId,
+                        principalTable: "PayGrade",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PayGrdaePayComponent_companies_CompanyId",
+                        column: x => x.CompanyId,
+                        principalTable: "companies",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "branches",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    Name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    RegionId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    CompanyId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_branches", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_branches_companies_CompanyId",
+                        column: x => x.CompanyId,
+                        principalTable: "companies",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_branches_regions_RegionId",
+                        column: x => x.RegionId,
+                        principalTable: "regions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUserClaims",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    ClaimType = table.Column<string>(type: "text", nullable: true),
+                    ClaimValue = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUserClaims", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUserLogins",
+                columns: table => new
+                {
+                    LoginProvider = table.Column<string>(type: "text", nullable: false),
+                    ProviderKey = table.Column<string>(type: "text", nullable: false),
+                    ProviderDisplayName = table.Column<string>(type: "text", nullable: true),
+                    UserId = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUserLogins", x => new { x.LoginProvider, x.ProviderKey });
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUserRoles",
+                columns: table => new
+                {
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    RoleId = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUserRoles", x => new { x.UserId, x.RoleId });
+                    table.ForeignKey(
+                        name: "FK_AspNetUserRoles_AspNetRoles_RoleId",
+                        column: x => x.RoleId,
+                        principalTable: "AspNetRoles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "AspNetUsers",
                 columns: table => new
                 {
@@ -203,6 +300,7 @@ namespace qwikhr.Migrations
                     Slug = table.Column<Guid>(type: "uuid", nullable: true),
                     FirstName = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     LastName = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    MiddleName = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     Status = table.Column<bool>(type: "boolean", nullable: false),
                     EmployeeId = table.Column<Guid>(type: "uuid", nullable: true),
                     CompanyId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
@@ -225,16 +323,243 @@ namespace qwikhr.Migrations
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_AspNetUsers_Employees_EmployeeId",
-                        column: x => x.EmployeeId,
-                        principalTable: "Employees",
-                        principalColumn: "Id");
-                    table.ForeignKey(
                         name: "FK_AspNetUsers_companies_CompanyId",
                         column: x => x.CompanyId,
                         principalTable: "companies",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUserTokens",
+                columns: table => new
+                {
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    LoginProvider = table.Column<string>(type: "text", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Value = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUserTokens", x => new { x.UserId, x.LoginProvider, x.Name });
+                    table.ForeignKey(
+                        name: "FK_AspNetUserTokens_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Otps",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    Code = table.Column<string>(type: "text", nullable: false),
+                    ExpiryTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Purpose = table.Column<int>(type: "integer", nullable: false),
+                    IsUsed = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Otps", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Otps_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "departments",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    Name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    ManagerId = table.Column<Guid>(type: "uuid", nullable: true),
+                    CompanyId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_departments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_departments_companies_CompanyId",
+                        column: x => x.CompanyId,
+                        principalTable: "companies",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Employees",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    FirstName = table.Column<string>(type: "text", nullable: false),
+                    LastName = table.Column<string>(type: "text", nullable: false),
+                    MiddleName = table.Column<string>(type: "text", nullable: true),
+                    Email = table.Column<string>(type: "text", nullable: false),
+                    PhoneNumber = table.Column<string>(type: "text", nullable: false),
+                    DateOfBirth = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Gender = table.Column<string>(type: "text", nullable: false),
+                    MaritalStatus = table.Column<string>(type: "text", nullable: false),
+                    EmploymentDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    TerminationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    EmploymentType = table.Column<string>(type: "text", nullable: false),
+                    PositionId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    DepartmentId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    BankName = table.Column<string>(type: "text", nullable: false),
+                    AccountNumber = table.Column<string>(type: "text", nullable: false),
+                    BVN = table.Column<string>(type: "text", nullable: false),
+                    PensionFundAdministrator = table.Column<string>(type: "text", nullable: false),
+                    PensionNumber = table.Column<string>(type: "text", nullable: false),
+                    TaxIdentificationNumber = table.Column<string>(type: "text", nullable: false),
+                    NextOfKinName = table.Column<string>(type: "text", nullable: false),
+                    NextOfKinPhone = table.Column<string>(type: "text", nullable: false),
+                    NextOfKinRelationship = table.Column<string>(type: "text", nullable: false),
+                    PayGradeId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    CompanyId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Employees", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Employees_PayGrade_PayGradeId",
+                        column: x => x.PayGradeId,
+                        principalTable: "PayGrade",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Employees_companies_CompanyId",
+                        column: x => x.CompanyId,
+                        principalTable: "companies",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Employees_departments_DepartmentId",
+                        column: x => x.DepartmentId,
+                        principalTable: "departments",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Employees_positions_PositionId",
+                        column: x => x.PositionId,
+                        principalTable: "positions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "EmployeeLeaveBalances",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    EmployeeId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    LeaveTypeId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    TotalDaysAllowed = table.Column<int>(type: "integer", nullable: false),
+                    DaysUsed = table.Column<int>(type: "integer", nullable: false),
+                    CompanyId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EmployeeLeaveBalances", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_EmployeeLeaveBalances_Employees_EmployeeId",
+                        column: x => x.EmployeeId,
+                        principalTable: "Employees",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_EmployeeLeaveBalances_LeaveTypes_LeaveTypeId",
+                        column: x => x.LeaveTypeId,
+                        principalTable: "LeaveTypes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_EmployeeLeaveBalances_companies_CompanyId",
+                        column: x => x.CompanyId,
+                        principalTable: "companies",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "EmployeePayAdjustment",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    EmployeeId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    PayComponentId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    Amount = table.Column<decimal>(type: "numeric", nullable: false),
+                    CompanyId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EmployeePayAdjustment", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_EmployeePayAdjustment_Employees_EmployeeId",
+                        column: x => x.EmployeeId,
+                        principalTable: "Employees",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_EmployeePayAdjustment_PayComponent_PayComponentId",
+                        column: x => x.PayComponentId,
+                        principalTable: "PayComponent",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_EmployeePayAdjustment_companies_CompanyId",
+                        column: x => x.CompanyId,
+                        principalTable: "companies",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "LeaveRequests",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    EmployeeId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    LeaveTypeId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    StartDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Status = table.Column<string>(type: "text", nullable: false),
+                    Comment = table.Column<string>(type: "text", nullable: true),
+                    ApprovedById = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    CompanyId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LeaveRequests", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_LeaveRequests_Employees_ApprovedById",
+                        column: x => x.ApprovedById,
+                        principalTable: "Employees",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_LeaveRequests_Employees_EmployeeId",
+                        column: x => x.EmployeeId,
+                        principalTable: "Employees",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_LeaveRequests_LeaveTypes_LeaveTypeId",
+                        column: x => x.LeaveTypeId,
+                        principalTable: "LeaveTypes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_LeaveRequests_companies_CompanyId",
+                        column: x => x.CompanyId,
+                        principalTable: "companies",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -295,217 +620,6 @@ namespace qwikhr.Migrations
                         name: "FK_ShiftSchedules_companies_CompanyId",
                         column: x => x.CompanyId,
                         principalTable: "companies",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "EmployeeLeaveBalances",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    EmployeeId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    LeaveTypeId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    TotalDaysAllowed = table.Column<int>(type: "integer", nullable: false),
-                    DaysUsed = table.Column<int>(type: "integer", nullable: false),
-                    CompanyId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_EmployeeLeaveBalances", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_EmployeeLeaveBalances_Employees_EmployeeId",
-                        column: x => x.EmployeeId,
-                        principalTable: "Employees",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_EmployeeLeaveBalances_LeaveTypes_LeaveTypeId",
-                        column: x => x.LeaveTypeId,
-                        principalTable: "LeaveTypes",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_EmployeeLeaveBalances_companies_CompanyId",
-                        column: x => x.CompanyId,
-                        principalTable: "companies",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "LeaveRequests",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    EmployeeId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    LeaveTypeId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    StartDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Status = table.Column<string>(type: "text", nullable: false),
-                    Comment = table.Column<string>(type: "text", nullable: true),
-                    ApprovedById = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    CompanyId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_LeaveRequests", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_LeaveRequests_Employees_ApprovedById",
-                        column: x => x.ApprovedById,
-                        principalTable: "Employees",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_LeaveRequests_Employees_EmployeeId",
-                        column: x => x.EmployeeId,
-                        principalTable: "Employees",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_LeaveRequests_LeaveTypes_LeaveTypeId",
-                        column: x => x.LeaveTypeId,
-                        principalTable: "LeaveTypes",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_LeaveRequests_companies_CompanyId",
-                        column: x => x.CompanyId,
-                        principalTable: "companies",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "branches",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    Name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    RegionId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    CompanyId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_branches", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_branches_companies_CompanyId",
-                        column: x => x.CompanyId,
-                        principalTable: "companies",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_branches_regions_RegionId",
-                        column: x => x.RegionId,
-                        principalTable: "regions",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AspNetUserClaims",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    UserId = table.Column<int>(type: "integer", nullable: false),
-                    ClaimType = table.Column<string>(type: "text", nullable: true),
-                    ClaimValue = table.Column<string>(type: "text", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AspNetUserClaims", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_AspNetUserClaims_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AspNetUserLogins",
-                columns: table => new
-                {
-                    LoginProvider = table.Column<string>(type: "text", nullable: false),
-                    ProviderKey = table.Column<string>(type: "text", nullable: false),
-                    ProviderDisplayName = table.Column<string>(type: "text", nullable: true),
-                    UserId = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AspNetUserLogins", x => new { x.LoginProvider, x.ProviderKey });
-                    table.ForeignKey(
-                        name: "FK_AspNetUserLogins_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AspNetUserRoles",
-                columns: table => new
-                {
-                    UserId = table.Column<int>(type: "integer", nullable: false),
-                    RoleId = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AspNetUserRoles", x => new { x.UserId, x.RoleId });
-                    table.ForeignKey(
-                        name: "FK_AspNetUserRoles_AspNetRoles_RoleId",
-                        column: x => x.RoleId,
-                        principalTable: "AspNetRoles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_AspNetUserRoles_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AspNetUserTokens",
-                columns: table => new
-                {
-                    UserId = table.Column<int>(type: "integer", nullable: false),
-                    LoginProvider = table.Column<string>(type: "text", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    Value = table.Column<string>(type: "text", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AspNetUserTokens", x => new { x.UserId, x.LoginProvider, x.Name });
-                    table.ForeignKey(
-                        name: "FK_AspNetUserTokens_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Otps",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    UserId = table.Column<int>(type: "integer", nullable: false),
-                    Code = table.Column<string>(type: "text", nullable: false),
-                    ExpiryTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Purpose = table.Column<int>(type: "integer", nullable: false),
-                    IsUsed = table.Column<bool>(type: "boolean", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Otps", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Otps_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -631,6 +745,11 @@ namespace qwikhr.Migrations
                 column: "CompanyId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_departments_ManagerId",
+                table: "departments",
+                column: "ManagerId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_EmployeeLeaveBalances_CompanyId",
                 table: "EmployeeLeaveBalances",
                 column: "CompanyId");
@@ -646,14 +765,39 @@ namespace qwikhr.Migrations
                 column: "LeaveTypeId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_EmployeePayAdjustment_CompanyId",
+                table: "EmployeePayAdjustment",
+                column: "CompanyId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EmployeePayAdjustment_EmployeeId",
+                table: "EmployeePayAdjustment",
+                column: "EmployeeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EmployeePayAdjustment_PayComponentId",
+                table: "EmployeePayAdjustment",
+                column: "PayComponentId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Employees_CompanyId",
                 table: "Employees",
                 column: "CompanyId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Employees_ManagerId",
+                name: "IX_Employees_DepartmentId",
                 table: "Employees",
-                column: "ManagerId");
+                column: "DepartmentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Employees_PayGradeId",
+                table: "Employees",
+                column: "PayGradeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Employees_PositionId",
+                table: "Employees",
+                column: "PositionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_LeaveRequests_ApprovedById",
@@ -684,6 +828,31 @@ namespace qwikhr.Migrations
                 name: "IX_Otps_UserId",
                 table: "Otps",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PayComponent_CompanyId",
+                table: "PayComponent",
+                column: "CompanyId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PayGrade_CompanyId",
+                table: "PayGrade",
+                column: "CompanyId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PayGrdaePayComponent_CompanyId",
+                table: "PayGrdaePayComponent",
+                column: "CompanyId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PayGrdaePayComponent_PayComponentId",
+                table: "PayGrdaePayComponent",
+                column: "PayComponentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PayGrdaePayComponent_PayGradeId",
+                table: "PayGrdaePayComponent",
+                column: "PayGradeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PayrollApprovalHistories_ApprovalLevelId",
@@ -739,11 +908,54 @@ namespace qwikhr.Migrations
                 name: "IX_ShiftSchedules_EmployeeId",
                 table: "ShiftSchedules",
                 column: "EmployeeId");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_AspNetUserClaims_AspNetUsers_UserId",
+                table: "AspNetUserClaims",
+                column: "UserId",
+                principalTable: "AspNetUsers",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_AspNetUserLogins_AspNetUsers_UserId",
+                table: "AspNetUserLogins",
+                column: "UserId",
+                principalTable: "AspNetUsers",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_AspNetUserRoles_AspNetUsers_UserId",
+                table: "AspNetUserRoles",
+                column: "UserId",
+                principalTable: "AspNetUsers",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_AspNetUsers_Employees_EmployeeId",
+                table: "AspNetUsers",
+                column: "EmployeeId",
+                principalTable: "Employees",
+                principalColumn: "Id");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_departments_Employees_ManagerId",
+                table: "departments",
+                column: "ManagerId",
+                principalTable: "Employees",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.SetNull);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+                name: "FK_departments_Employees_ManagerId",
+                table: "departments");
+
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 
@@ -763,10 +975,10 @@ namespace qwikhr.Migrations
                 name: "branches");
 
             migrationBuilder.DropTable(
-                name: "departments");
+                name: "EmployeeLeaveBalances");
 
             migrationBuilder.DropTable(
-                name: "EmployeeLeaveBalances");
+                name: "EmployeePayAdjustment");
 
             migrationBuilder.DropTable(
                 name: "LeaveRequests");
@@ -775,10 +987,10 @@ namespace qwikhr.Migrations
                 name: "Otps");
 
             migrationBuilder.DropTable(
-                name: "PayrollApprovalHistories");
+                name: "PayGrdaePayComponent");
 
             migrationBuilder.DropTable(
-                name: "positions");
+                name: "PayrollApprovalHistories");
 
             migrationBuilder.DropTable(
                 name: "ShiftSchedules");
@@ -796,6 +1008,9 @@ namespace qwikhr.Migrations
                 name: "AspNetUsers");
 
             migrationBuilder.DropTable(
+                name: "PayComponent");
+
+            migrationBuilder.DropTable(
                 name: "PayrollApprovals");
 
             migrationBuilder.DropTable(
@@ -803,6 +1018,15 @@ namespace qwikhr.Migrations
 
             migrationBuilder.DropTable(
                 name: "Employees");
+
+            migrationBuilder.DropTable(
+                name: "PayGrade");
+
+            migrationBuilder.DropTable(
+                name: "departments");
+
+            migrationBuilder.DropTable(
+                name: "positions");
 
             migrationBuilder.DropTable(
                 name: "companies");
