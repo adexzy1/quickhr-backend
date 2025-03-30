@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace qwikhr.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialDbMigrtion : Migration
+    public partial class InitialNew : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -34,7 +34,18 @@ namespace qwikhr.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    Name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false)
+                    Name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    Email = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    Phone = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    AltPhone = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    AddressLine1 = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    AddressLine2 = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    City = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    State = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    ZipCode = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    Country = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    Website = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    Status = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -105,7 +116,7 @@ namespace qwikhr.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "PayComponent",
+                name: "PayComponents",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
@@ -117,9 +128,9 @@ namespace qwikhr.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PayComponent", x => x.Id);
+                    table.PrimaryKey("PK_PayComponents", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_PayComponent_companies_CompanyId",
+                        name: "FK_PayComponents_companies_CompanyId",
                         column: x => x.CompanyId,
                         principalTable: "companies",
                         principalColumn: "Id",
@@ -127,7 +138,7 @@ namespace qwikhr.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "PayGrade",
+                name: "PayGrades",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
@@ -137,9 +148,9 @@ namespace qwikhr.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PayGrade", x => x.Id);
+                    table.PrimaryKey("PK_PayGrades", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_PayGrade_companies_CompanyId",
+                        name: "FK_PayGrades_companies_CompanyId",
                         column: x => x.CompanyId,
                         principalTable: "companies",
                         principalColumn: "Id",
@@ -187,7 +198,7 @@ namespace qwikhr.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "PayGrdaePayComponent",
+                name: "PayGrdaePayComponents",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
@@ -197,21 +208,21 @@ namespace qwikhr.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PayGrdaePayComponent", x => x.Id);
+                    table.PrimaryKey("PK_PayGrdaePayComponents", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_PayGrdaePayComponent_PayComponent_PayComponentId",
+                        name: "FK_PayGrdaePayComponents_PayComponents_PayComponentId",
                         column: x => x.PayComponentId,
-                        principalTable: "PayComponent",
+                        principalTable: "PayComponents",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_PayGrdaePayComponent_PayGrade_PayGradeId",
+                        name: "FK_PayGrdaePayComponents_PayGrades_PayGradeId",
                         column: x => x.PayGradeId,
-                        principalTable: "PayGrade",
+                        principalTable: "PayGrades",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_PayGrdaePayComponent_companies_CompanyId",
+                        name: "FK_PayGrdaePayComponents_companies_CompanyId",
                         column: x => x.CompanyId,
                         principalTable: "companies",
                         principalColumn: "Id",
@@ -297,7 +308,7 @@ namespace qwikhr.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Slug = table.Column<Guid>(type: "uuid", nullable: true),
+                    Slug = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
                     FirstName = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     LastName = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     MiddleName = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
@@ -420,6 +431,7 @@ namespace qwikhr.Migrations
                     NextOfKinName = table.Column<string>(type: "text", nullable: false),
                     NextOfKinPhone = table.Column<string>(type: "text", nullable: false),
                     NextOfKinRelationship = table.Column<string>(type: "text", nullable: false),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
                     PayGradeId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
                     CompanyId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()")
                 },
@@ -427,9 +439,15 @@ namespace qwikhr.Migrations
                 {
                     table.PrimaryKey("PK_Employees", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Employees_PayGrade_PayGradeId",
+                        name: "FK_Employees_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Employees_PayGrades_PayGradeId",
                         column: x => x.PayGradeId,
-                        principalTable: "PayGrade",
+                        principalTable: "PayGrades",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -487,7 +505,7 @@ namespace qwikhr.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "EmployeePayAdjustment",
+                name: "EmployeePayAdjustments",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
@@ -498,21 +516,21 @@ namespace qwikhr.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_EmployeePayAdjustment", x => x.Id);
+                    table.PrimaryKey("PK_EmployeePayAdjustments", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_EmployeePayAdjustment_Employees_EmployeeId",
+                        name: "FK_EmployeePayAdjustments_Employees_EmployeeId",
                         column: x => x.EmployeeId,
                         principalTable: "Employees",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_EmployeePayAdjustment_PayComponent_PayComponentId",
+                        name: "FK_EmployeePayAdjustments_PayComponents_PayComponentId",
                         column: x => x.PayComponentId,
-                        principalTable: "PayComponent",
+                        principalTable: "PayComponents",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_EmployeePayAdjustment_companies_CompanyId",
+                        name: "FK_EmployeePayAdjustments_companies_CompanyId",
                         column: x => x.CompanyId,
                         principalTable: "companies",
                         principalColumn: "Id",
@@ -625,6 +643,39 @@ namespace qwikhr.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "EmployeeLeaveRequests",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    EmployeeId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    LeaveRequestId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    RequestedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CompanyId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EmployeeLeaveRequests", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_EmployeeLeaveRequests_Employees_EmployeeId",
+                        column: x => x.EmployeeId,
+                        principalTable: "Employees",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_EmployeeLeaveRequests_LeaveRequests_LeaveRequestId",
+                        column: x => x.LeaveRequestId,
+                        principalTable: "LeaveRequests",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_EmployeeLeaveRequests_companies_CompanyId",
+                        column: x => x.CompanyId,
+                        principalTable: "companies",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "PayrollApprovalHistories",
                 columns: table => new
                 {
@@ -660,6 +711,39 @@ namespace qwikhr.Migrations
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_PayrollApprovalHistories_companies_CompanyId",
+                        column: x => x.CompanyId,
+                        principalTable: "companies",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "EmployeeShifts",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    EmployeeId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    ShiftScheduleId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    AssignedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CompanyId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EmployeeShifts", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_EmployeeShifts_Employees_EmployeeId",
+                        column: x => x.EmployeeId,
+                        principalTable: "Employees",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_EmployeeShifts_ShiftSchedules_ShiftScheduleId",
+                        column: x => x.ShiftScheduleId,
+                        principalTable: "ShiftSchedules",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_EmployeeShifts_companies_CompanyId",
                         column: x => x.CompanyId,
                         principalTable: "companies",
                         principalColumn: "Id",
@@ -765,18 +849,33 @@ namespace qwikhr.Migrations
                 column: "LeaveTypeId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_EmployeePayAdjustment_CompanyId",
-                table: "EmployeePayAdjustment",
+                name: "IX_EmployeeLeaveRequests_CompanyId",
+                table: "EmployeeLeaveRequests",
                 column: "CompanyId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_EmployeePayAdjustment_EmployeeId",
-                table: "EmployeePayAdjustment",
+                name: "IX_EmployeeLeaveRequests_EmployeeId",
+                table: "EmployeeLeaveRequests",
                 column: "EmployeeId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_EmployeePayAdjustment_PayComponentId",
-                table: "EmployeePayAdjustment",
+                name: "IX_EmployeeLeaveRequests_LeaveRequestId",
+                table: "EmployeeLeaveRequests",
+                column: "LeaveRequestId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EmployeePayAdjustments_CompanyId",
+                table: "EmployeePayAdjustments",
+                column: "CompanyId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EmployeePayAdjustments_EmployeeId",
+                table: "EmployeePayAdjustments",
+                column: "EmployeeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EmployeePayAdjustments_PayComponentId",
+                table: "EmployeePayAdjustments",
                 column: "PayComponentId");
 
             migrationBuilder.CreateIndex(
@@ -798,6 +897,26 @@ namespace qwikhr.Migrations
                 name: "IX_Employees_PositionId",
                 table: "Employees",
                 column: "PositionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Employees_UserId",
+                table: "Employees",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EmployeeShifts_CompanyId",
+                table: "EmployeeShifts",
+                column: "CompanyId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EmployeeShifts_EmployeeId",
+                table: "EmployeeShifts",
+                column: "EmployeeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EmployeeShifts_ShiftScheduleId",
+                table: "EmployeeShifts",
+                column: "ShiftScheduleId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_LeaveRequests_ApprovedById",
@@ -830,28 +949,28 @@ namespace qwikhr.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PayComponent_CompanyId",
-                table: "PayComponent",
+                name: "IX_PayComponents_CompanyId",
+                table: "PayComponents",
                 column: "CompanyId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PayGrade_CompanyId",
-                table: "PayGrade",
+                name: "IX_PayGrades_CompanyId",
+                table: "PayGrades",
                 column: "CompanyId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PayGrdaePayComponent_CompanyId",
-                table: "PayGrdaePayComponent",
+                name: "IX_PayGrdaePayComponents_CompanyId",
+                table: "PayGrdaePayComponents",
                 column: "CompanyId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PayGrdaePayComponent_PayComponentId",
-                table: "PayGrdaePayComponent",
+                name: "IX_PayGrdaePayComponents_PayComponentId",
+                table: "PayGrdaePayComponents",
                 column: "PayComponentId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PayGrdaePayComponent_PayGradeId",
-                table: "PayGrdaePayComponent",
+                name: "IX_PayGrdaePayComponents_PayGradeId",
+                table: "PayGrdaePayComponents",
                 column: "PayGradeId");
 
             migrationBuilder.CreateIndex(
@@ -953,6 +1072,10 @@ namespace qwikhr.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
+                name: "FK_Employees_AspNetUsers_UserId",
+                table: "Employees");
+
+            migrationBuilder.DropForeignKey(
                 name: "FK_departments_Employees_ManagerId",
                 table: "departments");
 
@@ -978,22 +1101,22 @@ namespace qwikhr.Migrations
                 name: "EmployeeLeaveBalances");
 
             migrationBuilder.DropTable(
-                name: "EmployeePayAdjustment");
+                name: "EmployeeLeaveRequests");
 
             migrationBuilder.DropTable(
-                name: "LeaveRequests");
+                name: "EmployeePayAdjustments");
+
+            migrationBuilder.DropTable(
+                name: "EmployeeShifts");
 
             migrationBuilder.DropTable(
                 name: "Otps");
 
             migrationBuilder.DropTable(
-                name: "PayGrdaePayComponent");
+                name: "PayGrdaePayComponents");
 
             migrationBuilder.DropTable(
                 name: "PayrollApprovalHistories");
-
-            migrationBuilder.DropTable(
-                name: "ShiftSchedules");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
@@ -1002,25 +1125,31 @@ namespace qwikhr.Migrations
                 name: "regions");
 
             migrationBuilder.DropTable(
-                name: "LeaveTypes");
+                name: "LeaveRequests");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
+                name: "ShiftSchedules");
 
             migrationBuilder.DropTable(
-                name: "PayComponent");
+                name: "PayComponents");
 
             migrationBuilder.DropTable(
                 name: "PayrollApprovals");
 
             migrationBuilder.DropTable(
+                name: "LeaveTypes");
+
+            migrationBuilder.DropTable(
                 name: "CompanyPayrollApprovalLevels");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUsers");
 
             migrationBuilder.DropTable(
                 name: "Employees");
 
             migrationBuilder.DropTable(
-                name: "PayGrade");
+                name: "PayGrades");
 
             migrationBuilder.DropTable(
                 name: "departments");

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using qwikhr.Common;
+using qwikhr.Models;
 
 namespace qwikhr.Interceptors
 {

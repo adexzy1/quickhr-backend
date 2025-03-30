@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Identity;
 
 public class User : IdentityUser<int>
 {
-    public Guid? Slug { get; set; } = Guid.NewGuid();
+    public Guid Slug { get; set; } = Guid.NewGuid();
 
     [MaxLength(50)]
     public string? FirstName { get; set; }
@@ -19,12 +19,12 @@ public class User : IdentityUser<int>
     public string? MiddleName { get; set; }
 
     public bool Status { get; set; } = true;
-
+    public Guid? EmployeeId { get; set; }
     [ForeignKey("EmployeeId")]
     public Employee? Employee { get; set; }
     public Guid CompanyId { get; set; }
     [ForeignKey("CompanyId")]
-    public Company? Company { get; set; }
+    public virtual Company? Company { get; set; }
 }
 
 

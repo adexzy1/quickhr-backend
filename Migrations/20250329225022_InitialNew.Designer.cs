@@ -12,8 +12,8 @@ using qwikhr.Data;
 namespace qwikhr.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250323172842_InitialDbMigrtion")]
-    partial class InitialDbMigrtion
+    [Migration("20250329225022_InitialNew")]
+    partial class InitialNew
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -221,8 +221,52 @@ namespace qwikhr.Migrations
                         .HasColumnType("uuid")
                         .HasDefaultValueSql("gen_random_uuid()");
 
+                    b.Property<string>("AddressLine1")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("AddressLine2")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("AltPhone")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("City")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Country")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("State")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Status")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Website")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("ZipCode")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
@@ -392,6 +436,9 @@ namespace qwikhr.Migrations
                     b.Property<DateTime?>("TerminationDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CompanyId");
@@ -401,6 +448,8 @@ namespace qwikhr.Migrations
                     b.HasIndex("PayGradeId");
 
                     b.HasIndex("PositionId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Employees");
                 });
@@ -442,6 +491,42 @@ namespace qwikhr.Migrations
                     b.HasIndex("LeaveTypeId");
 
                     b.ToTable("EmployeeLeaveBalances");
+                });
+
+            modelBuilder.Entity("qwikhr.Models.Leave.EmployeeLeaveRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("CompanyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("EmployeeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("LeaveRequestId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("RequestedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("LeaveRequestId");
+
+                    b.ToTable("EmployeeLeaveRequests");
                 });
 
             modelBuilder.Entity("qwikhr.Models.LeaveRequest", b =>
@@ -590,7 +675,7 @@ namespace qwikhr.Migrations
 
                     b.HasIndex("PayComponentId");
 
-                    b.ToTable("EmployeePayAdjustment");
+                    b.ToTable("EmployeePayAdjustments");
                 });
 
             modelBuilder.Entity("qwikhr.Models.Payroll.PayComponent", b =>
@@ -622,7 +707,7 @@ namespace qwikhr.Migrations
 
                     b.HasIndex("CompanyId");
 
-                    b.ToTable("PayComponent");
+                    b.ToTable("PayComponents");
                 });
 
             modelBuilder.Entity("qwikhr.Models.Payroll.PayGrade", b =>
@@ -648,7 +733,7 @@ namespace qwikhr.Migrations
 
                     b.HasIndex("CompanyId");
 
-                    b.ToTable("PayGrade");
+                    b.ToTable("PayGrades");
                 });
 
             modelBuilder.Entity("qwikhr.Models.Payroll.PayGrdaePayComponent", b =>
@@ -681,7 +766,7 @@ namespace qwikhr.Migrations
 
                     b.HasIndex("PayGradeId");
 
-                    b.ToTable("PayGrdaePayComponent");
+                    b.ToTable("PayGrdaePayComponents");
                 });
 
             modelBuilder.Entity("qwikhr.Models.PayrollApproval", b =>
@@ -865,6 +950,42 @@ namespace qwikhr.Migrations
                     b.ToTable("ShiftSchedules");
                 });
 
+            modelBuilder.Entity("qwikhr.Models.ShitSchedule.EmployeeShift", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CompanyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("EmployeeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("ShiftScheduleId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("ShiftScheduleId");
+
+                    b.ToTable("EmployeeShifts");
+                });
+
             modelBuilder.Entity("qwikhr.Models.User", b =>
                 {
                     b.Property<int>("Id")
@@ -933,8 +1054,10 @@ namespace qwikhr.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
 
-                    b.Property<Guid?>("Slug")
-                        .HasColumnType("uuid");
+                    b.Property<Guid>("Slug")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<bool>("Status")
                         .HasColumnType("boolean");
@@ -1087,6 +1210,12 @@ namespace qwikhr.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("qwikhr.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Company");
 
                     b.Navigation("Department");
@@ -1094,6 +1223,8 @@ namespace qwikhr.Migrations
                     b.Navigation("PayGrade");
 
                     b.Navigation("Position");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("qwikhr.Models.EmployeeLeaveBalance", b =>
@@ -1121,6 +1252,33 @@ namespace qwikhr.Migrations
                     b.Navigation("Employee");
 
                     b.Navigation("LeaveType");
+                });
+
+            modelBuilder.Entity("qwikhr.Models.Leave.EmployeeLeaveRequest", b =>
+                {
+                    b.HasOne("qwikhr.Models.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("qwikhr.Models.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("qwikhr.Models.LeaveRequest", "LeaveRequest")
+                        .WithMany()
+                        .HasForeignKey("LeaveRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("LeaveRequest");
                 });
 
             modelBuilder.Entity("qwikhr.Models.LeaveRequest", b =>
@@ -1357,6 +1515,33 @@ namespace qwikhr.Migrations
                     b.Navigation("Company");
 
                     b.Navigation("Employee");
+                });
+
+            modelBuilder.Entity("qwikhr.Models.ShitSchedule.EmployeeShift", b =>
+                {
+                    b.HasOne("qwikhr.Models.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("qwikhr.Models.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("qwikhr.Models.ShiftSchedule", "ShiftSchedule")
+                        .WithMany()
+                        .HasForeignKey("ShiftScheduleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("ShiftSchedule");
                 });
 
             modelBuilder.Entity("qwikhr.Models.User", b =>

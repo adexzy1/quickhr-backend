@@ -13,8 +13,10 @@ public class Department : CompanyEntity
 
     [Required]
     [MaxLength(50)]
-    public string? Name { get; set; }
-
+    public required string Name { get; set; }
+    public Guid? BranchId { get; set; }
+    [ForeignKey("BranchId")]
+    public Branch? Branch { get; set; }
     public Guid? ManagerId { get; set; }
     [ForeignKey("ManagerId")]
     public Employee? Manager { get; set; }

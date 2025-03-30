@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using qwikhr.Data;
 using qwikhr.Dtos.Region;
-using qwikhr.helper;
 using qwikhr.Interfaces;
 using qwikhr.Models;
 
@@ -38,7 +37,7 @@ namespace qwikhr.Repository
 
         public async Task<Region?> GetByIdAsync(Guid id)
         {
-            var regionModel = await _context.Regions.FirstOrDefaultAsync(r => r.Id == id);
+            var regionModel = await _context.Regions.Include(b => b.Branches).FirstOrDefaultAsync(r => r.Id == id);
             if (regionModel == null)
             {
                 return null;

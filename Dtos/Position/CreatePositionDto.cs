@@ -1,11 +1,10 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace qwikhr.Dtos.Branch
+namespace qwikhr.Dtos.Position
 {
-    public class CreateBranchDto
+    public class CreatePositionDto
     {
         [Required]
         public required string Name { get; set; }
-        public Guid? RegionId { get; set; }
     }
 }

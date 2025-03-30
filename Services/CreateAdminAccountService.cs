@@ -1,3 +1,4 @@
+using System.Text;
 using Microsoft.AspNetCore.Identity;
 using qwikhr.Data;
 using qwikhr.Dtos.Auth;
@@ -37,7 +38,7 @@ namespace qwikhr.Services
                 var user = new User
                 {
                     UserName = email.ToLower(),
-                    Email = email,
+                    Email = email.ToLower(),
                     Status = true,
                     CompanyId = createdCompany.Id
                 };
@@ -76,4 +77,5 @@ namespace qwikhr.Services
             }
         }
     }
+
 }

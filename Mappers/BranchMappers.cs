@@ -10,17 +10,28 @@ namespace qwikhr.Mappers
             return new BranchDto
             {
                 Id = branchModel.Id,
-                CompanyId = branchModel.CompanyId,
-                Name = branchModel.Name
+                Name = branchModel.Name,
+                RegionId = branchModel.RegionId ?? Guid.Empty,
             };
         }
 
-        public static Branch ToBranchFromCreateDto(this CreateBranchDto branchDto, Guid companyId)
+        public static Branch ToBranchFromCreateDto(this CreateBranchDto branchDto)
         {
             return new Branch
             {
                 Name = branchDto.Name,
-                CompanyId = companyId,
+                RegionId = branchDto.RegionId
+            };
+        }
+
+        public static SingleBranchDto ToSingleBranchDto(this Branch branchModel)
+        {
+            return new SingleBranchDto
+            {
+                Id = branchModel.Id,
+                Name = branchModel.Name,
+                RegionId = branchModel.RegionId ?? Guid.Empty,
+                Departments = [.. branchModel.Departments.Select(c => c.ToDepartmentDto())]
             };
         }
     }

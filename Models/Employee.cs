@@ -58,6 +58,10 @@ namespace qwikhr.Models
         public string NextOfKinPhone { get; set; } = string.Empty;
         public string NextOfKinRelationship { get; set; } = string.Empty;
 
+        public int UserId { get; set; }
+        [ForeignKey("UserId")]
+        public User? User { get; set; }
+
         // salary
         public Guid PayGradeId { get; set; }  // Reference to PayGrade
         [ForeignKey("PayGradeId")]

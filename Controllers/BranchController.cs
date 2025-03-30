@@ -25,7 +25,7 @@ namespace qwikhr.Controllers
             return Ok(branchDto);
         }
 
-        [HttpGet("{slug}")]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetBySlug([FromRoute] Guid id)
         {
             var branch = await _branchRepo.GetByIdAsync(id);
@@ -33,13 +33,13 @@ namespace qwikhr.Controllers
             {
                 return NotFound();
             }
-            return Ok(branch.ToBranchDto());
+            return Ok(branch.ToSingleBranchDto());
         }
 
-        [HttpPost("{companyId:int}")]
-        public async Task<IActionResult> Create([FromRoute] Guid companyId, [FromBody] CreateBranchDto branchdto)
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] CreateBranchDto branchdto)
         {
-            var branchModel = branchdto.ToBranchFromCreateDto(companyId);
+            var branchModel = branchdto.ToBranchFromCreateDto();
             await _branchRepo.CreateAsync(branchModel);
             return CreatedAtAction(nameof(GetBySlug), new { id = branchModel.Id }, branchModel.ToBranchDto());
         }

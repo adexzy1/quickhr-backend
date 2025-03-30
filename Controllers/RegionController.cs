@@ -50,7 +50,7 @@ namespace qwikhr.Controllers
                     return NotFound();
                 }
 
-                return Ok(region.ToRegionDto());
+                return Ok(region.ToSingleRegionDto());
             }
             catch (Exception e)
             {

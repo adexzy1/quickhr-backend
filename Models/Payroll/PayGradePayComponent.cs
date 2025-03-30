@@ -4,7 +4,7 @@ using qwikhr.Common;
 
 namespace qwikhr.Models.Payroll
 {
-    public class PayGrdaePayComponent : CompanyEntity
+    public class PayGradePayComponent : CompanyEntity
     {
         [Key]
         public Guid Id { get; set; } = Guid.NewGuid();

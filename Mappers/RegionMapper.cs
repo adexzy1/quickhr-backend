@@ -14,7 +14,6 @@ namespace qwikhr.Mappers
                 Id = regionModel.Id,
                 Name = regionModel.Name,
                 CreatedAt = regionModel.CreatedAt,
-                CompanyId = regionModel.CompanyId
             };
         }
 
@@ -23,6 +22,16 @@ namespace qwikhr.Mappers
             return new Region
             {
                 Name = createDto.Name,
+            };
+        }
+
+        public static SingleRegionDto ToSingleRegionDto(this Region regionModel)
+        {
+            return new SingleRegionDto
+            {
+                Id = regionModel.Id,
+                Name = regionModel.Name,
+                Branches = [.. regionModel.Branches.Select(b => b.ToBranchDto())]
             };
         }
     }

@@ -42,7 +42,7 @@ namespace qwikhr.Repository
 
         public async Task<Branch?> GetByIdAsync(Guid Id)
         {
-            var branchModel = await _context.Branches.FirstOrDefaultAsync(b => b.Id == Id);
+            var branchModel = await _context.Branches.Include(b => b.Departments).FirstOrDefaultAsync(b => b.Id == Id);
             if (branchModel == null)
             {
                 return null;

@@ -31,7 +31,11 @@ namespace qwikhr.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
         {
-            Console.Write("started vreating");
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var (IsSuccess, adminUserDto, Message) = await _createAdminService.RegisterUserWithCompanyAsync(registerDto.Email, registerDto.Password, registerDto.CompanyName);
             if (!IsSuccess)
             {
@@ -61,10 +65,10 @@ namespace qwikhr.Controllers
 
             try
             {
-                // Find the user by email (case-insensitive)
+                var normalizedEmail = loginDto.Email.ToUpper(); // Identity normalizes to uppercase
                 var user = await _userManager.Users
                     .Include(u => u.Company)
-                    .FirstOrDefaultAsync(u => u.Email.ToLower() == loginDto.Email.ToLower());
+                    .FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail);
 
                 if (user == null)
                 {

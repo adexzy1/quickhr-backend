@@ -13,7 +13,8 @@ public class Branch : CompanyEntity
     [Required]
     [MaxLength(50)]
     public string? Name { get; set; }
-    public Guid RegionId { get; set; }
+    public Guid? RegionId { get; set; }
     [ForeignKey("RegionId")]
     public Region? Region { get; set; }
+    public ICollection<Department> Departments { get; set; } = [];
 }

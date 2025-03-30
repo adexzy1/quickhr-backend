@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using qwikhr.Extensions;
 using qwikhr.helper;
+using qwikhr.Models.Leave;
+using qwikhr.Models.Payroll;
+using qwikhr.Models.ShitSchedule;
 using qwikhr.Seeder;
 
 public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<int>, int>
@@ -23,13 +26,18 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<int>, i
     public DbSet<Position> Positions { get; set; }
     public DbSet<Otp> Otps { get; set; }
     public DbSet<ShiftSchedule> ShiftSchedules { get; set; }
+    public DbSet<EmployeeShift> EmployeeShifts { get; set; }
     public DbSet<PayrollApproval> PayrollApprovals { get; set; }
     public DbSet<PayrollApprovalHistory> PayrollApprovalHistories { get; set; }
     public DbSet<LeaveType> LeaveTypes { get; set; }
     public DbSet<LeaveRequest> LeaveRequests { get; set; }
     public DbSet<EmployeeLeaveBalance> EmployeeLeaveBalances { get; set; }
+    public DbSet<EmployeeLeaveRequest> EmployeeLeaveRequests { get; set; }
     public DbSet<CompanyPayrollApprovalLevel> CompanyPayrollApprovalLevels { get; set; }
-
+    public DbSet<PayGrade> PayGrades { get; set; }
+    public DbSet<PayGradePayComponent> PayGradePayComponents { get; set; }
+    public DbSet<PayComponent> PayComponents { get; set; }
+    public DbSet<EmployeePayAdjustment> EmployeePayAdjustments { get; set; }
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -50,10 +58,15 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<int>, i
         builder.Entity<PayrollApproval>().HasQueryFilter(e => e.CompanyId == _userContextHelper.GetUserCompanyIdOrNull());
         builder.Entity<Position>().HasQueryFilter(e => e.CompanyId == _userContextHelper.GetUserCompanyIdOrNull());
         builder.Entity<Department>().HasQueryFilter(e => e.CompanyId == _userContextHelper.GetUserCompanyIdOrNull());
-        builder.Entity<Company>().HasQueryFilter(e => e.Id == _userContextHelper.GetUserCompanyIdOrNull());
-        builder.Entity<Branch>().HasQueryFilter(e => e.Id == _userContextHelper.GetUserCompanyIdOrNull());
-        builder.Entity<Employee>().HasQueryFilter(e => e.Id == _userContextHelper.GetUserCompanyIdOrNull());
+        builder.Entity<Branch>().HasQueryFilter(e => e.CompanyId == _userContextHelper.GetUserCompanyIdOrNull());
+        builder.Entity<Employee>().HasQueryFilter(e => e.CompanyId == _userContextHelper.GetUserCompanyIdOrNull());
+        builder.Entity<ShiftSchedule>().HasQueryFilter(e => e.CompanyId == _userContextHelper.GetUserCompanyIdOrNull());
+        builder.Entity<EmployeeShift>().HasQueryFilter(e => e.CompanyId == _userContextHelper.GetUserCompanyIdOrNull());
+        builder.Entity<EmployeeLeaveRequest>().HasQueryFilter(e => e.CompanyId == _userContextHelper.GetUserCompanyIdOrNull());
+        builder.Entity<CompanyPayrollApprovalLevel>().HasQueryFilter(e => e.CompanyId == _userContextHelper.GetUserCompanyIdOrNull());
+        builder.Entity<PayGrade>().HasQueryFilter(e => e.CompanyId == _userContextHelper.GetUserCompanyIdOrNull());
+        builder.Entity<PayGradePayComponent>().HasQueryFilter(e => e.CompanyId == _userContextHelper.GetUserCompanyIdOrNull());
+        builder.Entity<PayComponent>().HasQueryFilter(e => e.CompanyId == _userContextHelper.GetUserCompanyIdOrNull());
+        builder.Entity<EmployeePayAdjustment>().HasQueryFilter(e => e.CompanyId == _userContextHelper.GetUserCompanyIdOrNull());
     }
-
-
 }

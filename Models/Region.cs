@@ -14,7 +14,7 @@ public class Region : CompanyEntity
     [Required]
     [MaxLength(50)]
     public required string Name { get; set; }
-
+    public ICollection<Branch> Branches { get; set; } = [];
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }
