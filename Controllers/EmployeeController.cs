@@ -25,7 +25,7 @@ namespace qwikhr.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> Register([FromBody] CreateEmployeeDto employeeDto)
         {
-            var tempPassword = GenerateTemporaryPassword();
+            var tempPassword = GenerateSecurePassword();
 
             var (IsSuccess, Message) = await _createEmployeeService.CreateEmployeeAsync(employeeDto, tempPassword);
             if (!IsSuccess)
@@ -40,18 +40,29 @@ namespace qwikhr.Controllers
             return Ok(new { message = Message });
         }
 
-        private static string GenerateTemporaryPassword()
+        private static string GenerateSecurePassword(int length = 12)
         {
-            const string validChars = "ABCDEFGHJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*?_-";
-            var random = new Random();
-            var tempPassword = new StringBuilder();
+            if (length < 6) length = 6; // Ensure minimum length
 
-            for (int i = 0; i < 12; i++) // 12-character password
+            const string Uppercase = "ABCDEFGHJKLMNOPQRSTUVWXYZ";
+            const string Lowercase = "abcdefghijklmnopqrstuvwxyz";
+            const string Digits = "0123456789";
+            const string SpecialChars = "!@#$%^&*?_-";
+            const string AllChars = Uppercase + Lowercase + Digits + SpecialChars;
+
+            var random = new Random();
+            var password = new StringBuilder();
+            password.Append(Uppercase[random.Next(Uppercase.Length)]);
+            password.Append(Lowercase[random.Next(Lowercase.Length)]);
+            password.Append(Digits[random.Next(Digits.Length)]);
+            password.Append(SpecialChars[random.Next(SpecialChars.Length)]);
+
+            for (int i = 4; i < length; i++)
             {
-                tempPassword.Append(validChars[random.Next(validChars.Length)]);
+                password.Append(AllChars[random.Next(AllChars.Length)]);
             }
 
-            return tempPassword.ToString();
+            return new string(password.ToString().OrderBy(_ => random.Next()).ToArray()); // Shuffle the characters
         }
 
     }

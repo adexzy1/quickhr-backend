@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using qwikhr.Data;
 using qwikhr.Dtos.Employee;
+using qwikhr.helper;
 using qwikhr.Interfaces;
 using qwikhr.Models;
 using System.Text;
@@ -15,13 +16,15 @@ namespace qwikhr.Services
         private readonly ApplicationDbContext _context;
         private readonly IEmployeeRepository _employeeRepository;
         private readonly ILogger<CreateEmployeeService> _logger;
+        private readonly UserContextHelper _userContextHelper;
 
-        public CreateEmployeeService(UserManager<User> userManager, ApplicationDbContext context, IEmployeeRepository employeeRepository, ILogger<CreateEmployeeService> logger)
+        public CreateEmployeeService(UserManager<User> userManager, ApplicationDbContext context, IEmployeeRepository employeeRepository, ILogger<CreateEmployeeService> logger, UserContextHelper userContextHelper)
         {
             _userManager = userManager;
             _context = context;
             _employeeRepository = employeeRepository;
             _logger = logger;
+            _userContextHelper = userContextHelper;
         }
 
         public async Task<(bool IsSuccess, string Message)> CreateEmployeeAsync(CreateEmployeeDto dto, string password)
@@ -37,7 +40,8 @@ namespace qwikhr.Services
                     PhoneNumber = dto.PhoneNumber,
                     FirstName = dto.FirstName,
                     LastName = dto.LastName,
-                    MiddleName = dto.MiddleName
+                    MiddleName = dto.MiddleName,
+                    CompanyId = _userContextHelper.GetUserCompanyIdOrNull() ?? Guid.Empty
                 };
 
                 var result = await _userManager.CreateAsync(user, password);

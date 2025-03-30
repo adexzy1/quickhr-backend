@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using qwikhr.Common;
 
-[Table("positions")]
+[Table("Positions")]
 
 public class Position : CompanyEntity
 {

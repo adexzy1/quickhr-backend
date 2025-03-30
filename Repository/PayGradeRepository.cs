@@ -37,7 +37,7 @@ namespace qwikhr.Repository
 
         public async Task<List<PayGrade>> GetAllAsync()
         {
-            var payGrades = _context.PayGrades;
+            var payGrades = _context.PayGrades.Include(pg => pg.PayComponents).ThenInclude(pgp => pgp.PayComponent);
             return await payGrades.ToListAsync();
         }
 

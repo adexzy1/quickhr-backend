@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using qwikhr.Common;
 
-[Table("branches")]
+[Table("Branches")]
 
 public class Branch : CompanyEntity
 {

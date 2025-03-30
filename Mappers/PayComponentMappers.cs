@@ -3,24 +3,23 @@ using qwikhr.Models.Payroll;
 
 namespace qwikhr.Mappers
 {
-    public class PayComponentMappers
+    public static class PayComponentMappers
     {
-        // Convert DTO to Entity (for saving to DB)
-        public static PayComponent ToPayComponent(PayComponentDto dto)
+        public static PayComponentDto ToPayComponentDto(this PayComponent payComponentModel)
         {
-            return new PayComponent
+            return new PayComponentDto
             {
-                Name = dto.Name,
-                Value = dto.Value,
-                IsPercentage = dto.IsPercentage,
-                IsAllowance = dto.IsAllowance
+                Name = payComponentModel.Name,
+                Value = payComponentModel.Value,
+                IsPercentage = payComponentModel.IsPercentage,
+                IsAllowance = payComponentModel.IsAllowance
             };
         }
 
         // Convert Entity to DTO (for returning data)
-        public static PayComponentDto ToPayComponentFronCreateDto(CreatePayComponentDto entity)
+        public static PayComponent ToPayComponentFronCreateDto(this CreatePayComponentDto entity)
         {
-            return new PayComponentDto
+            return new PayComponent
             {
                 Name = entity.Name,
                 Value = entity.Value,

@@ -13,14 +13,18 @@ namespace qwikhr.Mappers
                 Id = payGradeModel.Id,
                 Name = payGradeModel.Name,
                 BaseSalary = payGradeModel.BaseSalary,
-                PayComponents = [.. payGradeModel.PayComponents
-                 .Select(pc => new PayComponentDto
-                 {
-                     Name = pc.PayComponent.Name,
-                     Value = pc.PayComponent.Value,
-                     IsPercentage = pc.PayComponent.IsPercentage,
-                     IsAllowance = pc.PayComponent.IsAllowance
-                 })]
+                PayComponents = payGradeModel.PayComponents?
+                    .Select(pc => pc.PayComponent != null ? new PayComponentDto
+                    {
+                        Id = pc.PayComponent.Id,
+                        Name = pc.PayComponent.Name,
+                        Value = pc.PayComponent.Value,
+                        IsPercentage = pc.PayComponent.IsPercentage,
+                        IsAllowance = pc.PayComponent.IsAllowance
+                    } : null) // Handle null PayComponent
+                    .Where(dto => dto != null)
+                    .Select(dto => dto!) // Explicitly cast to non-nullable
+                    .ToList() ?? new List<PayComponentDto>() // Ensure non-null list
             };
         }
 

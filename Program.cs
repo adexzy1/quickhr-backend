@@ -127,10 +127,12 @@ builder.Services.AddScoped<IPositionRepository, PositionRepository>();
 builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 builder.Services.AddScoped<IPayGradeRepository, PayGradeRepository>();
 builder.Services.AddScoped<IPayComponentRepository, PayComponentRepository>();
+builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 
 
 // services
 builder.Services.AddScoped<CreateAdminAccountService>();
+builder.Services.AddScoped<CreateEmployeeService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddFluentEnail();
