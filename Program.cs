@@ -123,6 +123,11 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddScoped<IBranchRepository, BranchRepository>();
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 builder.Services.AddScoped<IRegionRepository, RegionRepository>();
+builder.Services.AddScoped<IPositionRepository, PositionRepository>();
+builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
+builder.Services.AddScoped<IPayGradeRepository, PayGradeRepository>();
+builder.Services.AddScoped<IPayComponentRepository, PayComponentRepository>();
+
 
 // services
 builder.Services.AddScoped<CreateAdminAccountService>();
