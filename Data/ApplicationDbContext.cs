@@ -37,7 +37,19 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<int>, i
     public DbSet<PayGrade> PayGrades { get; set; }
     public DbSet<PayGradePayComponent> PayGradePayComponents { get; set; }
     public DbSet<PayComponent> PayComponents { get; set; }
-    public DbSet<EmployeePayAdjustment> EmployeePayAdjustments { get; set; }
+    public DbSet<Country> Countries { get; set; }
+    public DbSet<EmploymentType> EmploymentTypes { get; set; }
+    public DbSet<Location> Locations { get; set; }
+    public DbSet<LocationPayRule> LocationPayRules { get; set; }
+    public DbSet<State> States { get; set; }
+    public DbSet<EmployeePayComponent> EmployeePayComponents { get; set; }
+    public DbSet<EmployeeSalary> EmployeeSalaries { get; set; }
+    public DbSet<PayGradeComponent> PayGradeComponents { get; set; }
+    public DbSet<PayGradeStep> PayGradeSteps { get; set; }
+    public DbSet<PayrollEntry> PayrollEntries { get; set; }
+    public DbSet<PayrollEntryDetail> PayrollEntryDetails { get; set; }
+    public DbSet<PayrollPeriod> PayrollPeriods { get; set; }
+    public DbSet<PayrollRun> PayrollRuns { get; set; }
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -67,6 +79,16 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<int>, i
         builder.Entity<PayGrade>().HasQueryFilter(e => e.CompanyId == _userContextHelper.GetUserCompanyIdOrNull());
         builder.Entity<PayGradePayComponent>().HasQueryFilter(e => e.CompanyId == _userContextHelper.GetUserCompanyIdOrNull());
         builder.Entity<PayComponent>().HasQueryFilter(e => e.CompanyId == _userContextHelper.GetUserCompanyIdOrNull());
-        builder.Entity<EmployeePayAdjustment>().HasQueryFilter(e => e.CompanyId == _userContextHelper.GetUserCompanyIdOrNull());
+        builder.Entity<EmploymentType>().HasQueryFilter(e => e.CompanyId == _userContextHelper.GetUserCompanyIdOrNull());
+        builder.Entity<Location>().HasQueryFilter(e => e.CompanyId == _userContextHelper.GetUserCompanyIdOrNull());
+        builder.Entity<LocationPayRule>().HasQueryFilter(e => e.CompanyId == _userContextHelper.GetUserCompanyIdOrNull());
+        builder.Entity<EmployeePayComponent>().HasQueryFilter(e => e.CompanyId == _userContextHelper.GetUserCompanyIdOrNull());
+        builder.Entity<EmployeeSalary>().HasQueryFilter(e => e.CompanyId == _userContextHelper.GetUserCompanyIdOrNull());
+        builder.Entity<PayGradeComponent>().HasQueryFilter(e => e.CompanyId == _userContextHelper.GetUserCompanyIdOrNull());
+        builder.Entity<PayGradeStep>().HasQueryFilter(e => e.CompanyId == _userContextHelper.GetUserCompanyIdOrNull());
+        builder.Entity<PayrollEntry>().HasQueryFilter(e => e.CompanyId == _userContextHelper.GetUserCompanyIdOrNull());
+        builder.Entity<PayrollEntryDetail>().HasQueryFilter(e => e.CompanyId == _userContextHelper.GetUserCompanyIdOrNull());
+        builder.Entity<PayrollPeriod>().HasQueryFilter(e => e.CompanyId == _userContextHelper.GetUserCompanyIdOrNull());
+        builder.Entity<PayrollRun>().HasQueryFilter(e => e.CompanyId == _userContextHelper.GetUserCompanyIdOrNull());
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using qwikhr.Models;
 
 namespace qwikhr.Dtos.Employee
 {
@@ -19,7 +20,7 @@ namespace qwikhr.Dtos.Employee
         // ✅ Employment Details
         public DateTime? EmploymentDate { get; set; } // When the employee was hired
         public DateTime? TerminationDate { get; set; } // When the employee was terminated
-        public string? EmploymentType { get; set; } // Full-Time, Contract, Intern
+        public EmploymentType? EmploymentType { get; set; } // Full-Time, Contract, Intern
         public Guid? PositionId { get; set; }
         public Guid? DepartmentId { get; set; }
         public Guid? PayGradeId { get; set; }

@@ -34,7 +34,7 @@ namespace qwikhr.Repository
 
         public async Task<List<Employee>> GetAllAsync()
         {
-            var employees = _context.Employees;
+            var employees = _context.Employees.Include(em => em.EmploymentType).Include(em => em.Position).Include(em => em.Department).Include(em => em.PayGrade);
             return await employees.ToListAsync();
         }
 

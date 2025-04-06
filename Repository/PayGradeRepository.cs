@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using qwikhr.Data;
 using qwikhr.Dtos.Payroll;
 using qwikhr.Interfaces;
+using qwikhr.Mappers;
 using qwikhr.Models.Payroll;
 
 namespace qwikhr.Repository
@@ -23,27 +24,29 @@ namespace qwikhr.Repository
 
         public async Task<PayGrade?> DeleteAsync(Guid id)
         {
-            var pgModel = await _context.PayGrades.Include(pg => pg.PayComponents).FirstOrDefaultAsync(pg => pg.Id == id);
-            if (pgModel == null)
-            {
-                return null;
-            }
-            // Remove existing pay components
-            _context.PayGradePayComponents.RemoveRange(pgModel.PayComponents);
-            _context.PayGrades.Remove(pgModel);
+            var grade = await GetByIdAsync(id);
+            if (grade == null) return null;
+
+            _context.PayGrades.Remove(grade);
             await _context.SaveChangesAsync();
-            return pgModel;
+            return grade;
+
+        }
+
+        public async Task<bool> ExistsAsync(Guid id)
+        {
+            return await _context.PayGrades.AnyAsync(p => p.Id == id);
         }
 
         public async Task<List<PayGrade>> GetAllAsync()
         {
-            var payGrades = _context.PayGrades.Include(pg => pg.PayComponents).ThenInclude(pgp => pgp.PayComponent);
+            var payGrades = _context.PayGrades.Include(pg => pg.PayGradeComponents).ThenInclude(pgp => pgp.PayComponent);
             return await payGrades.ToListAsync();
         }
 
         public async Task<PayGrade?> GetByIdAsync(Guid id)
         {
-            var payGradeModel = await _context.PayGrades.Include(pg => pg.PayComponents).ThenInclude(pgp => pgp.PayComponent).FirstOrDefaultAsync(pg => pg.Id == id);
+            var payGradeModel = await _context.PayGrades.Include(pg => pg.PayGradeComponents).ThenInclude(pgp => pgp.PayComponent).FirstOrDefaultAsync(pg => pg.Id == id);
             if (payGradeModel == null)
             {
                 return null;
@@ -51,30 +54,19 @@ namespace qwikhr.Repository
             return payGradeModel;
         }
 
-        public async Task<PayGrade?> UpdateAsync(Guid id, CreatePayGradeDto payGradeDto)
+        public async Task<PayGrade?> UpdateAsync(Guid id, UpdatePayGradeDto payGradeDto)
         {
-            var payGradeModel = await _context.PayGrades.Include(pg => pg.PayComponents).FirstOrDefaultAsync(b => b.Id == id);
-            if (payGradeModel == null)
-            {
-                return null;
-            }
-            payGradeModel.Name = payGradeDto.Name;
-            payGradeModel.BaseSalary = payGradeDto.BaseSalary;
+            var existingGrade = await GetByIdAsync(id);
+            if (existingGrade == null) return null;
 
-            // Remove existing pay components
-            _context.PayGradePayComponents.RemoveRange(payGradeModel.PayComponents);
+            var updatedGrade = payGradeDto.ToPayGradeFromUpdateDto(existingGrade);
+            _context.Entry(existingGrade).CurrentValues.SetValues(updatedGrade);
+            existingGrade.UpdatedAt = DateTime.UtcNow;
 
-            // Add new pay components
-            payGradeModel.PayComponents = [.. payGradeDto.PayComponentIds
-                .Select(payComponentId => new PayGradePayComponent
-                {
-                    PayGradeId = id,
-                    PayComponentId = payComponentId
-                })];
-
-            _context.PayGrades.Update(payGradeModel);
             await _context.SaveChangesAsync();
-            return payGradeModel;
+            return existingGrade;
         }
+
+
     }
 }

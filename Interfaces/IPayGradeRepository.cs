@@ -8,7 +8,8 @@ namespace qwikhr.Interfaces
         Task<List<PayGrade>> GetAllAsync();
         Task<PayGrade?> GetByIdAsync(Guid id);
         Task<PayGrade> CreateAsync(PayGrade payGradeModel);
-        Task<PayGrade?> UpdateAsync(Guid id, CreatePayGradeDto payGradeDto);
+        Task<PayGrade?> UpdateAsync(Guid id, UpdatePayGradeDto payGradeDto);
         Task<PayGrade?> DeleteAsync(Guid id);
+        Task<bool> ExistsAsync(Guid id);
     }
 }

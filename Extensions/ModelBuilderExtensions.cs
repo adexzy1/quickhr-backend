@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using qwikhr.Models;
+using qwikhr.Models.Payroll;
 
 namespace qwikhr.Extensions
 {
@@ -42,6 +43,11 @@ namespace qwikhr.Extensions
             .WithMany()
             .HasForeignKey(d => d.ManagerId)
             .OnDelete(DeleteBehavior.SetNull);
+
+            // Employee indexes
+            builder.Entity<Employee>()
+                .HasIndex(e => e.PayGradeId)
+                .HasDatabaseName("ix_employee_paygrade");
         }
     }
 

@@ -1,64 +1,47 @@
-using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace qwikhr.Dtos.Employee
 {
     public class CreateEmployeeDto
     {
-        // Personal Information
+        // ✅ Personal Information
         [Required]
         public string FirstName { get; set; } = string.Empty;
-
         [Required]
         public string LastName { get; set; } = string.Empty;
-
         public string? MiddleName { get; set; } // Optional
-
         [Required, EmailAddress]
-        public string Email { get; set; } = string.Empty;
-
+        public string Email { get; set; } = string.Empty; // Used for Identity User creation
         [Required, Phone]
-        public string PhoneNumber { get; set; } = string.Empty;
-
+        public string PhoneNumber { get; set; } = string.Empty; // Used for Identity User creation
         [Required]
-        public DateTime DateOfBirth { get; set; }
-
+        public required DateTime DateOfBirth { get; set; }
         [Required]
-        public string Gender { get; set; } = string.Empty; // Male, Female, Other
-
+        public required string Gender { get; set; } // Male, Female, Other
         [Required]
-        public string MaritalStatus { get; set; } = string.Empty; // Single, Married, etc.
+        public required string MaritalStatus { get; set; } // Single, Married, etc.
 
+        // ✅ Employment Details
         [Required]
         public DateTime EmploymentDate { get; set; } // When the employee was hired
-
-        public string EmploymentType { get; set; } = "Full-Time"; // Full-Time, Contract, Intern
-
-        [Required]
+        public Guid EmploymentTypeId { get; set; } // Full-Time, Contract, Intern
         public Guid PositionId { get; set; }
-
-        [Required]
         public Guid DepartmentId { get; set; }
+        public Guid PayGradeId { get; set; }
 
-        // Financial & Statutory Information
-        public string BankName { get; set; } = string.Empty;
-        public string AccountNumber { get; set; } = string.Empty;
-        public string BVN { get; set; } = string.Empty; // Bank Verification Number
+        // ✅ Bank Information
+        public string? BankName { get; set; }
+        public string? AccountNumber { get; set; }
+        public string? BVN { get; set; } // Bank Verification Number
 
-        public string PensionFundAdministrator { get; set; } = string.Empty;
-        public string PensionNumber { get; set; } = string.Empty;
+        // ✅ Tax & Pension Information
+        public string? TaxIdentificationNumber { get; set; } // TIN
+        public string? PensionFundAdministrator { get; set; }
+        public string? PensionNumber { get; set; }
 
-        public string TaxIdentificationNumber { get; set; } = string.Empty; // TIN
-
-        // Next of Kin (Emergency Contact)
-        public string NextOfKinName { get; set; } = string.Empty;
-        public string NextOfKinPhone { get; set; } = string.Empty;
-        public string NextOfKinRelationship { get; set; } = string.Empty;
-
-        [Required]
-        public int UserId { get; set; }
-
-        [Required]
-        public Guid PayGradeId { get; set; } // Reference to PayGrade
+        // ✅ Next of Kin Details
+        public string? NextOfKinName { get; set; }
+        public string? NextOfKinPhone { get; set; }
+        public string? NextOfKinRelationship { get; set; }
     }
 }

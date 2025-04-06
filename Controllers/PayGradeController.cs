@@ -50,7 +50,7 @@ namespace qwikhr.Controllers
         }
 
         [HttpPut("{id:guid}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] CreatePayGradeDto payGradeDto)
+        public async Task<IActionResult> Update(Guid id, [FromBody] UpdatePayGradeDto payGradeDto)
         {
             if (!ModelState.IsValid)
             {

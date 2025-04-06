@@ -5,7 +5,7 @@ using qwikhr.Dtos.Employee;
 using qwikhr.helper;
 using qwikhr.Interfaces;
 using qwikhr.Models;
-using System.Text;
+using qwikhr.Models.Payroll;
 
 
 namespace qwikhr.Services
@@ -75,7 +75,7 @@ namespace qwikhr.Services
                     Gender = dto.Gender,
                     MaritalStatus = dto.MaritalStatus,
                     EmploymentDate = dto.EmploymentDate,
-                    EmploymentType = dto.EmploymentType,
+                    EmploymentTypeId = dto.EmploymentTypeId,
                     PositionId = dto.PositionId,
                     DepartmentId = dto.DepartmentId,
                     BankName = dto.BankName,
@@ -98,6 +98,30 @@ namespace qwikhr.Services
                     _logger.LogError("Failed to create employee record for user: {Email}", dto.Email);
                     return (false, "Failed to create employee record.");
                 }
+                // Step 3: Seed Default PayComponents for the Employee
+                var payGrade = await _context.PayGrades
+                    .Include(pg => pg.PayGradeComponents)
+                    .ThenInclude(pgc => pgc.PayComponent)
+                    .FirstOrDefaultAsync(pg => pg.Id == dto.PayGradeId);
+
+                if (payGrade == null)
+                {
+                    await transaction.RollbackAsync();
+                    _logger.LogError("PayGrade not found for PayGradeId: {PayGradeId}", dto.PayGradeId);
+                    return (false, "Invalid PayGradeId provided.");
+                }
+
+                // Create EmployeePayComponents with default values
+                var employeePayComponents = payGrade.PayGradeComponents.Select(pgc => new EmployeePayComponent
+                {
+                    EmployeeId = createdEmployee.Id,
+                    PayComponentId = pgc.PayComponentId,
+                    Amount = 0, // Default value
+                    Frequency = "Monthly", // Default frequency
+                    EffectiveDate = DateTime.UtcNow,
+                    IsActive = true
+                }).ToList();
+                await _context.EmployeePayComponents.AddRangeAsync(employeePayComponents);
                 await _context.SaveChangesAsync();
 
                 // Commit the transaction

@@ -69,9 +69,14 @@ namespace qwikhr.Repository
                 return null;
             }
             payComponentModel.Name = payComponentDto.Name;
-            payComponentModel.Value = payComponentDto.Value;
-            payComponentModel.IsAllowance = payComponentDto.IsAllowance;
-            payComponentModel.IsPercentage = payComponentDto.IsPercentage;
+            payComponentModel.Code = payComponentDto.Code;
+            payComponentModel.Description = payComponentDto.Description;
+            payComponentModel.Category = payComponentDto.Category;
+            payComponentModel.CalculationType = payComponentDto.CalculationType;
+            payComponentModel.CalculationFormula = payComponentDto.CalculationFormula;
+            payComponentModel.GLAccountId = payComponentDto.GLAccountId;
+            payComponentModel.IsTaxable = payComponentDto.IsTaxable;
+            payComponentModel.IsRecurring = payComponentDto.IsRecurring;
 
             _context.PayComponents.Update(payComponentModel);
             await _context.SaveChangesAsync();

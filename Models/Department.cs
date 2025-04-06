@@ -14,6 +14,8 @@ public class Department : CompanyEntity
     [Required]
     [MaxLength(50)]
     public required string Name { get; set; }
+    [MaxLength(50)]
+    public string Code { get; set; } = string.Empty;
     public Guid? BranchId { get; set; }
     [ForeignKey("BranchId")]
     public Branch? Branch { get; set; }

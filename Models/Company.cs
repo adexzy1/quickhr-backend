@@ -17,14 +17,12 @@ public class Company
     [MaxLength(50)]
     public string? Phone { get; set; }
 
-    [MaxLength(50)]
-    public string? AltPhone { get; set; }
+    public string? TaxIdentificationNumber { get; set; }
+    public DateTime FiscalYearStart { get; set; }
+    public string? DefaultCurrency { get; set; }
 
     [MaxLength(255)]
-    public string? AddressLine1 { get; set; }
-
-    [MaxLength(50)]
-    public string? AddressLine2 { get; set; }
+    public string? Address { get; set; }
 
     [MaxLength(50)]
     public string? City { get; set; }
