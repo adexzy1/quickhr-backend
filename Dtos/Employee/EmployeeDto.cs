@@ -1,5 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using qwikhr.Dtos.Generic;
+using qwikhr.Dtos.Payroll;
 using qwikhr.Models;
 
 namespace qwikhr.Dtos.Employee
@@ -15,7 +17,6 @@ namespace qwikhr.Dtos.Employee
         public string Gender { get; set; } = string.Empty; // Male, Female, Other
         public string MaritalStatus { get; set; } = string.Empty; // Single, Married, etc.
         public DateTime EmploymentDate { get; set; } // When the employee was hired
-        public Guid EmploymentTypeId { get; set; }
         public string BankName { get; set; } = string.Empty;
         public string AccountNumber { get; set; } = string.Empty;
         public string BVN { get; set; } = string.Empty;
@@ -26,10 +27,14 @@ namespace qwikhr.Dtos.Employee
         public string NextOfKinPhone { get; set; } = string.Empty;
         public string NextOfKinRelationship { get; set; } = string.Empty;
         public DateTime? TerminationDate { get; set; }
-        public string EmploymentType { get; set; } = string.Empty;
-        public string PayGradeName { get; set; } = string.Empty;
-        public string PositionName { get; set; } = string.Empty;
-        public string DepartmentName { get; set; } = string.Empty;
+        public EntityDto? EmploymentType { get; set; } = new();
+        public EntityDto? PayGrade { get; set; } = new();
+        public EntityDto? Department { get; set; } = new();
+        public EntityDto? Position { get; set; } = new();
+    }
 
+    public class SingleEmployeeDto : EmployeeDto
+    {
+        public List<EmployeePayComponentDto> EmployeePayComponents { get; set; } = [];
     }
 }

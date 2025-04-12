@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using qwikhr.Common;
 
-namespace qwikhr.Models
+namespace qwikhr.Models.Payroll
 {
     public class PayrollApprovalHistory : CompanyEntity
     {
@@ -21,10 +21,19 @@ namespace qwikhr.Models
         [ForeignKey("ApprovalLevelId")]
         public required CompanyPayrollApprovalLevel ApprovalLevel { get; set; }
 
-        public required string Status { get; set; }
+        public ApprovalStatus Status { get; set; } = ApprovalStatus.Pending; // Enum for status
         public string? Comments { get; set; }
-
         public DateTime ApprovedAt { get; set; } = DateTime.UtcNow;
+
+        // Optional fields
+        public string? Metadata { get; set; } // JSON for custom data
+        public bool IsDeleted { get; set; } = false; // Soft deletion flag
     }
 
+    public enum ApprovalStatus
+    {
+        Pending,
+        Approved,
+        Rejected
+    }
 }

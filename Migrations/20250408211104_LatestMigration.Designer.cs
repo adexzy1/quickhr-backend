@@ -12,8 +12,8 @@ using qwikhr.Data;
 namespace qwikhr.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250405075131_NewMigration")]
-    partial class NewMigration
+    [Migration("20250408211104_LatestMigration")]
+    partial class LatestMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -183,6 +183,32 @@ namespace qwikhr.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("qwikhr.Models.ApprovalWorkflow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("CompanyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId");
+
+                    b.ToTable("ApprovalWorkflows");
+                });
+
             modelBuilder.Entity("qwikhr.Models.Branch", b =>
                 {
                     b.Property<Guid>("Id")
@@ -281,10 +307,18 @@ namespace qwikhr.Migrations
                         .HasColumnType("uuid")
                         .HasDefaultValueSql("gen_random_uuid()");
 
+                    b.Property<Guid>("ApproverId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
                     b.Property<Guid>("CompanyId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsFinalApproval")
                         .HasColumnType("boolean");
@@ -293,12 +327,24 @@ namespace qwikhr.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("Metadata")
+                        .HasColumnType("text");
+
                     b.Property<int>("Order")
                         .HasColumnType("integer");
 
+                    b.Property<Guid>("WorkflowId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
                     b.HasKey("Id");
 
+                    b.HasIndex("ApproverId");
+
                     b.HasIndex("CompanyId");
+
+                    b.HasIndex("WorkflowId");
 
                     b.ToTable("CompanyPayrollApprovalLevels");
                 });
@@ -822,42 +868,6 @@ namespace qwikhr.Migrations
                     b.ToTable("Otps");
                 });
 
-            modelBuilder.Entity("qwikhr.Models.Payroll.EmployeePayAdjustment", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasDefaultValueSql("gen_random_uuid()");
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("numeric");
-
-                    b.Property<Guid>("CompanyId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasDefaultValueSql("gen_random_uuid()");
-
-                    b.Property<Guid>("EmployeeId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasDefaultValueSql("gen_random_uuid()");
-
-                    b.Property<Guid>("PayComponentId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasDefaultValueSql("gen_random_uuid()");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CompanyId");
-
-                    b.HasIndex("EmployeeId");
-
-                    b.HasIndex("PayComponentId");
-
-                    b.ToTable("EmployeePayAdjustments");
-                });
-
             modelBuilder.Entity("qwikhr.Models.Payroll.EmployeePayComponent", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1016,16 +1026,16 @@ namespace qwikhr.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
-                    b.Property<bool>("IsExempt")
+                    b.Property<bool?>("IsExempt")
                         .HasColumnType("boolean");
 
-                    b.Property<decimal>("MaximumSalary")
+                    b.Property<decimal?>("MaximumSalary")
                         .HasColumnType("numeric");
 
-                    b.Property<decimal>("MidPointSalary")
+                    b.Property<decimal?>("MidPointSalary")
                         .HasColumnType("numeric");
 
-                    b.Property<decimal>("MinimumSalary")
+                    b.Property<decimal?>("MinimumSalary")
                         .HasColumnType("numeric");
 
                     b.Property<string>("Name")
@@ -1150,6 +1160,61 @@ namespace qwikhr.Migrations
                     b.ToTable("PayGradeSteps");
                 });
 
+            modelBuilder.Entity("qwikhr.Models.Payroll.PayrollApprovalHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("ApprovalLevelId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("ApprovedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ApproverId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("Comments")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("CompanyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Metadata")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("PayrollApprovalId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApprovalLevelId");
+
+                    b.HasIndex("ApproverId");
+
+                    b.HasIndex("CompanyId");
+
+                    b.HasIndex("PayrollApprovalId");
+
+                    b.ToTable("PayrollApprovalHistories");
+                });
+
             modelBuilder.Entity("qwikhr.Models.Payroll.PayrollEntry", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1173,7 +1238,13 @@ namespace qwikhr.Migrations
                     b.Property<decimal>("GrossPay")
                         .HasColumnType("numeric");
 
+                    b.Property<decimal>("NHF")
+                        .HasColumnType("numeric");
+
                     b.Property<decimal>("NetPay")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("PAYETax")
                         .HasColumnType("numeric");
 
                     b.Property<string>("PaymentMethod")
@@ -1184,8 +1255,14 @@ namespace qwikhr.Migrations
                         .HasColumnType("uuid")
                         .HasDefaultValueSql("gen_random_uuid()");
 
-                    b.Property<string>("Status")
-                        .HasColumnType("text");
+                    b.Property<decimal>("PensionEmployee")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("PensionEmployer")
+                        .HasColumnType("numeric");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
 
                     b.Property<decimal>("TotalDeductions")
                         .HasColumnType("numeric");
@@ -1211,12 +1288,22 @@ namespace qwikhr.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("numeric");
 
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<Guid>("CompanyId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Metadata")
                         .HasColumnType("text");
 
                     b.Property<Guid>("PayComponentId")
@@ -1261,6 +1348,9 @@ namespace qwikhr.Migrations
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<bool>("IsLocked")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
@@ -1271,9 +1361,8 @@ namespace qwikhr.Migrations
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -1294,6 +1383,12 @@ namespace qwikhr.Migrations
                         .HasColumnType("uuid")
                         .HasDefaultValueSql("gen_random_uuid()");
 
+                    b.Property<DateTime?>("FinalizedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Metadata")
+                        .HasColumnType("text");
+
                     b.Property<string>("Notes")
                         .HasColumnType("text");
 
@@ -1310,9 +1405,17 @@ namespace qwikhr.Migrations
                     b.Property<DateTime>("RunDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("TotalDeductions")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("TotalGrossPay")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("TotalNetPay")
+                        .HasColumnType("numeric");
 
                     b.HasKey("Id");
 
@@ -1347,12 +1450,19 @@ namespace qwikhr.Migrations
                         .HasColumnType("uuid")
                         .HasDefaultValueSql("gen_random_uuid()");
 
+                    b.Property<string>("Metadata")
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("PayrollMonth")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<Guid>("PayrollRunId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
 
                     b.Property<decimal>("TotalPay")
                         .HasColumnType("numeric");
@@ -1365,57 +1475,9 @@ namespace qwikhr.Migrations
 
                     b.HasIndex("EmployeeId");
 
+                    b.HasIndex("PayrollRunId");
+
                     b.ToTable("PayrollApprovals");
-                });
-
-            modelBuilder.Entity("qwikhr.Models.PayrollApprovalHistory", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasDefaultValueSql("gen_random_uuid()");
-
-                    b.Property<Guid>("ApprovalLevelId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasDefaultValueSql("gen_random_uuid()");
-
-                    b.Property<DateTime>("ApprovedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("ApproverId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasDefaultValueSql("gen_random_uuid()");
-
-                    b.Property<string>("Comments")
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("CompanyId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasDefaultValueSql("gen_random_uuid()");
-
-                    b.Property<Guid>("PayrollApprovalId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasDefaultValueSql("gen_random_uuid()");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ApprovalLevelId");
-
-                    b.HasIndex("ApproverId");
-
-                    b.HasIndex("CompanyId");
-
-                    b.HasIndex("PayrollApprovalId");
-
-                    b.ToTable("PayrollApprovalHistories");
                 });
 
             modelBuilder.Entity("qwikhr.Models.Position", b =>
@@ -1741,6 +1803,17 @@ namespace qwikhr.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("qwikhr.Models.ApprovalWorkflow", b =>
+                {
+                    b.HasOne("qwikhr.Models.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+                });
+
             modelBuilder.Entity("qwikhr.Models.Branch", b =>
                 {
                     b.HasOne("qwikhr.Models.Company", "Company")
@@ -1760,13 +1833,29 @@ namespace qwikhr.Migrations
 
             modelBuilder.Entity("qwikhr.Models.CompanyPayrollApprovalLevel", b =>
                 {
+                    b.HasOne("qwikhr.Models.Employee", "Approver")
+                        .WithMany()
+                        .HasForeignKey("ApproverId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("qwikhr.Models.Company", "Company")
                         .WithMany()
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("qwikhr.Models.ApprovalWorkflow", "Workflow")
+                        .WithMany("ApprovalLevels")
+                        .HasForeignKey("WorkflowId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Approver");
+
                     b.Navigation("Company");
+
+                    b.Navigation("Workflow");
                 });
 
             modelBuilder.Entity("qwikhr.Models.Department", b =>
@@ -2000,33 +2089,6 @@ namespace qwikhr.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("qwikhr.Models.Payroll.EmployeePayAdjustment", b =>
-                {
-                    b.HasOne("qwikhr.Models.Company", "Company")
-                        .WithMany()
-                        .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("qwikhr.Models.Employee", "Employee")
-                        .WithMany()
-                        .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("qwikhr.Models.Payroll.PayComponent", "PayComponent")
-                        .WithMany()
-                        .HasForeignKey("PayComponentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Company");
-
-                    b.Navigation("Employee");
-
-                    b.Navigation("PayComponent");
-                });
-
             modelBuilder.Entity("qwikhr.Models.Payroll.EmployeePayComponent", b =>
                 {
                     b.HasOne("qwikhr.Models.Company", "Company")
@@ -2168,6 +2230,41 @@ namespace qwikhr.Migrations
                     b.Navigation("PayGrade");
                 });
 
+            modelBuilder.Entity("qwikhr.Models.Payroll.PayrollApprovalHistory", b =>
+                {
+                    b.HasOne("qwikhr.Models.CompanyPayrollApprovalLevel", "ApprovalLevel")
+                        .WithMany()
+                        .HasForeignKey("ApprovalLevelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("qwikhr.Models.Employee", "Approver")
+                        .WithMany()
+                        .HasForeignKey("ApproverId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("qwikhr.Models.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("qwikhr.Models.PayrollApproval", "PayrollApproval")
+                        .WithMany("ApprovalHistory")
+                        .HasForeignKey("PayrollApprovalId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ApprovalLevel");
+
+                    b.Navigation("Approver");
+
+                    b.Navigation("Company");
+
+                    b.Navigation("PayrollApproval");
+                });
+
             modelBuilder.Entity("qwikhr.Models.Payroll.PayrollEntry", b =>
                 {
                     b.HasOne("qwikhr.Models.Company", "Company")
@@ -2280,46 +2377,19 @@ namespace qwikhr.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("qwikhr.Models.Payroll.PayrollRun", "PayrollRun")
+                        .WithMany()
+                        .HasForeignKey("PayrollRunId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Company");
 
                     b.Navigation("CurrentPayrollApprovalLevel");
 
                     b.Navigation("Employee");
-                });
 
-            modelBuilder.Entity("qwikhr.Models.PayrollApprovalHistory", b =>
-                {
-                    b.HasOne("qwikhr.Models.CompanyPayrollApprovalLevel", "ApprovalLevel")
-                        .WithMany()
-                        .HasForeignKey("ApprovalLevelId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("qwikhr.Models.Employee", "Approver")
-                        .WithMany()
-                        .HasForeignKey("ApproverId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("qwikhr.Models.Company", "Company")
-                        .WithMany()
-                        .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("qwikhr.Models.PayrollApproval", "PayrollApproval")
-                        .WithMany("ApprovalHistory")
-                        .HasForeignKey("PayrollApprovalId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ApprovalLevel");
-
-                    b.Navigation("Approver");
-
-                    b.Navigation("Company");
-
-                    b.Navigation("PayrollApproval");
+                    b.Navigation("PayrollRun");
                 });
 
             modelBuilder.Entity("qwikhr.Models.Position", b =>
@@ -2416,6 +2486,11 @@ namespace qwikhr.Migrations
                     b.Navigation("Company");
 
                     b.Navigation("Employee");
+                });
+
+            modelBuilder.Entity("qwikhr.Models.ApprovalWorkflow", b =>
+                {
+                    b.Navigation("ApprovalLevels");
                 });
 
             modelBuilder.Entity("qwikhr.Models.Branch", b =>

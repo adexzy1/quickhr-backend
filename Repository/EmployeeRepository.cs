@@ -40,7 +40,15 @@ namespace qwikhr.Repository
 
         public async Task<Employee?> GetByIdAsync(Guid Id)
         {
-            var employeeModel = await _context.Employees.FirstOrDefaultAsync(r => r.Id == Id);
+            var employeeModel = await _context.Employees.
+            Include(em => em.EmploymentType).
+            Include(em => em.Position).
+            Include(em => em.Department).
+            Include(em => em.PayGrade)
+            .Include(em => em.PayComponents)
+            .ThenInclude(emp => emp.PayComponent)
+            .FirstOrDefaultAsync(r => r.Id == Id);
+
             if (employeeModel == null)
             {
                 return null;

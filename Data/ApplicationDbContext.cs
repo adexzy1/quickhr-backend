@@ -50,6 +50,9 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<int>, i
     public DbSet<PayrollEntryDetail> PayrollEntryDetails { get; set; }
     public DbSet<PayrollPeriod> PayrollPeriods { get; set; }
     public DbSet<PayrollRun> PayrollRuns { get; set; }
+    public DbSet<ApprovalWorkflow> ApprovalWorkflows { get; set; }
+
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -60,6 +63,16 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<int>, i
         builder.Entity<IdentityRole<int>>().HasData(RoleSeeder.GetRoles());
         // otp relationship
         builder.Entity<Otp>().HasOne(o => o.User).WithMany().HasForeignKey(o => o.UserId).OnDelete(DeleteBehavior.Cascade);
+
+        // Configure the relationship between PayrollRun and Employee
+        builder.Entity<PayrollRun>()
+            .HasMany(pr => pr.Employees)
+            .WithMany()
+            .UsingEntity<Dictionary<string, object>>(
+                "PayrollRunEmployee", // Name of the join table
+                j => j.HasOne<Employee>().WithMany().HasForeignKey("EmployeeId"),
+                j => j.HasOne<PayrollRun>().WithMany().HasForeignKey("PayrollRunId")
+            );
 
         // adding global filters
         builder.Entity<Region>().HasQueryFilter(e => e.CompanyId == _userContextHelper.GetUserCompanyIdOrNull());
@@ -90,5 +103,6 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<int>, i
         builder.Entity<PayrollEntryDetail>().HasQueryFilter(e => e.CompanyId == _userContextHelper.GetUserCompanyIdOrNull());
         builder.Entity<PayrollPeriod>().HasQueryFilter(e => e.CompanyId == _userContextHelper.GetUserCompanyIdOrNull());
         builder.Entity<PayrollRun>().HasQueryFilter(e => e.CompanyId == _userContextHelper.GetUserCompanyIdOrNull());
+        builder.Entity<ApprovalWorkflow>().HasQueryFilter(e => e.CompanyId == _userContextHelper.GetUserCompanyIdOrNull());
     }
 }

@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using qwikhr.Dtos.Employee;
 using qwikhr.Interfaces;
 using qwikhr.Mappers;
@@ -16,54 +17,111 @@ namespace qwikhr.Controllers
         private readonly CreateEmployeeService _createEmployeeService;
         private readonly IEmailService _emailService;
         private readonly IEmployeeRepository _employeeRepo;
+        private readonly ILogger<EmployeeController> _logger;
 
-        public EmployeeController(CreateEmployeeService createEmployeeService, IEmailService emailService, IEmployeeRepository employeeRepo)
+        public EmployeeController(CreateEmployeeService createEmployeeService, IEmailService emailService, IEmployeeRepository employeeRepo, ILogger<EmployeeController> logger)
         {
             _createEmployeeService = createEmployeeService;
             _emailService = emailService;
             _employeeRepo = employeeRepo;
+            _logger = logger;
         }
+
 
         [AllowAnonymous]
         [HttpPost("create")]
         public async Task<IActionResult> Register([FromBody] CreateEmployeeDto employeeDto)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
-            }
-            var tempPassword = GenerateSecurePassword();
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+                var tempPassword = GenerateSecurePassword();
 
-            var (IsSuccess, Message) = await _createEmployeeService.CreateEmployeeAsync(employeeDto, tempPassword);
-            if (!IsSuccess)
-            {
-                return BadRequest(new { message = Message });
+                var (IsSuccess, Message) = await _createEmployeeService.CreateEmployeeAsync(employeeDto, tempPassword);
+                if (!IsSuccess)
+                {
+                    return BadRequest(new { message = Message });
+                }
+                if (!string.IsNullOrEmpty(employeeDto.Email))
+                {
+                    EmailMetadata emailMetadata = new(employeeDto.Email, "Your Temporary password", tempPassword);
+                    await _emailService.Send(emailMetadata);
+                }
+                return Ok(new { message = Message });
             }
-            if (!string.IsNullOrEmpty(employeeDto.Email))
+            catch (Exception e)
             {
-                EmailMetadata emailMetadata = new(employeeDto.Email, "Your Temporary password", tempPassword);
-                await _emailService.Send(emailMetadata);
+                if (e is DbUpdateException dbEx && dbEx.InnerException != null)
+                {
+                    _logger.LogError(dbEx.InnerException, "Database update failed: {Message}", dbEx.InnerException.Message);
+                }
+                else
+                {
+                    _logger.LogError(e, "An error occurred: {Message}", e.Message);
+                }
+                return StatusCode(500, new { message = "An error occurred while processing your request. Please try again later." });
+
             }
-            return Ok(new { message = Message });
+
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var employees = await _employeeRepo.GetAllAsync();
-            var employeeDto = employees.Select(e => e.ToEmployeeDto());
-            return Ok(employeeDto);
+            try
+            {
+                var employees = await _employeeRepo.GetAllAsync();
+                var employeeDto = employees.Select(e => e.ToEmployeeDto());
+                return Ok(employeeDto);
+            }
+            catch (Exception e)
+            {
+                if (e is DbUpdateException dbEx && dbEx.InnerException != null)
+                {
+                    _logger.LogError(dbEx.InnerException, "Database update failed: {Message}", dbEx.InnerException.Message);
+                }
+                else
+                {
+                    _logger.LogError(e, "An error occurred: {Message}", e.Message);
+                }
+                return StatusCode(500, new { message = "An error occurred while processing your request. Please try again later." });
+            }
+
         }
 
-        [HttpGet("id")]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetById([FromRoute] Guid id)
         {
-            var employee = await _employeeRepo.GetByIdAsync(id);
-            if (employee == null)
+            try
             {
-                return NotFound();
+                if (id == Guid.Empty)
+                {
+                    return BadRequest(new { message = "Invalid employee ID." });
+                }
+                var employee = await _employeeRepo.GetByIdAsync(id);
+                if (employee == null)
+                {
+                    return NotFound();
+                }
+                return Ok(employee.ToSingleEmployeeDto());
             }
-            return Ok(employee.ToEmployeeDto());
+            catch (Exception e)
+            {
+                if (e is DbUpdateException dbEx && dbEx.InnerException != null)
+                {
+                    _logger.LogError(dbEx.InnerException, "Database update failed: {Message}", dbEx.InnerException.Message);
+                }
+                else
+                {
+                    _logger.LogError(e, "An error occurred: {Message}", e.Message);
+                }
+                return StatusCode(500, new { message = "An error occurred while processing your request. Please try again later." });
+
+            }
+
         }
 
         private static string GenerateSecurePassword(int length = 12)

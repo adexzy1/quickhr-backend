@@ -4,6 +4,8 @@ namespace qwikhr.Dtos.Payroll
 {
     public class UpdateEmployeePayComponentDto
     {
+        [Required(ErrorMessage = "Id is required.")]
+        public Guid Id { get; set; } // Unique identifier for the employee pay component
         [Required(ErrorMessage = "Amount is required.")]
         [Range(0, double.MaxValue, ErrorMessage = "Amount must be a positive number.")]
         public decimal Amount { get; set; } // The updated value for the pay component

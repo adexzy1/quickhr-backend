@@ -9,7 +9,13 @@ namespace qwikhr.Dtos.Payroll
         public required string Name { get; set; }
         public string? Code { get; set; }
         public string? Description { get; set; }
+        [Required(ErrorMessage = "Category is required.")]
+        [EnumDataType(typeof(PayComponentCategory), ErrorMessage = "Invalid category.")]
+        [Display(Name = "Category")]
         public PayComponentCategory Category { get; set; }
+        [Required(ErrorMessage = "Calculation type is required.")]
+        [EnumDataType(typeof(CalculationType), ErrorMessage = "Invalid calculation type.")]
+        [Display(Name = "Calculation Type")]
         public CalculationType CalculationType { get; set; }
         public string? CalculationFormula { get; set; } // For formula-based components
         public bool IsTaxable { get; set; }

@@ -14,12 +14,16 @@ namespace qwikhr.Models.Payroll
         public decimal Units { get; set; } // Hours, days, etc.
         public string? Rate { get; set; } // $X per unit
         public string? Description { get; set; }
+        public string Category { get; set; } = "Allowance"; // Allowance, Deduction, Other
 
         // Navigation properties
         [ForeignKey("PayrollEntryId")]
         public virtual PayrollEntry? PayrollEntry { get; set; }
         [ForeignKey("PayComponentId")]
         public virtual PayComponent? PayComponent { get; set; }
-    }
 
+        // Optional fields
+        public string? Metadata { get; set; } // JSON for custom data
+        public bool IsDeleted { get; set; } = false; // Soft deletion flag
+    }
 }

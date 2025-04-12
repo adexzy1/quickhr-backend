@@ -1,4 +1,5 @@
 using qwikhr.Dtos.Employee;
+using qwikhr.Dtos.Generic;
 using qwikhr.Models;
 
 namespace qwikhr.Mappers
@@ -18,10 +19,7 @@ namespace qwikhr.Mappers
                 Gender = employeeModel.Gender,
                 MaritalStatus = employeeModel.MaritalStatus,
                 EmploymentDate = employeeModel.EmploymentDate,
-                TerminationDate = employeeModel.TerminationDate,// Assuming EmploymentType has a Name property
-                PayGradeName = employeeModel.PayGrade?.Name, // Assuming PayGrade has a Name property
-                PositionName = employeeModel.Position?.Name, // Assuming Position has a Name property
-                DepartmentName = employeeModel.Department?.Name, // Assuming Department has a Name property
+                TerminationDate = employeeModel.TerminationDate,
                 BankName = employeeModel.BankName,
                 AccountNumber = employeeModel.AccountNumber,
                 BVN = employeeModel.BVN,
@@ -31,8 +29,31 @@ namespace qwikhr.Mappers
                 NextOfKinName = employeeModel.NextOfKinName,
                 NextOfKinPhone = employeeModel.NextOfKinPhone,
                 NextOfKinRelationship = employeeModel.NextOfKinRelationship,
-                EmploymentType = employeeModel.EmploymentType.Name,
-                EmploymentTypeId = employeeModel.EmploymentTypeId,
+                EmploymentType = new EntityDto
+                {
+                    Id = employeeModel.EmploymentTypeId,
+                    Name = employeeModel.EmploymentType?.Name ?? string.Empty
+                },
+                // Map Department
+                Department = new EntityDto
+                {
+                    Id = employeeModel.DepartmentId,
+                    Name = employeeModel.Department?.Name ?? string.Empty
+                },
+
+                // Map Position
+                Position = new EntityDto
+                {
+                    Id = employeeModel.PositionId,
+                    Name = employeeModel.Position?.Name ?? string.Empty
+                },
+
+                // Map PayGrade
+                PayGrade = new EntityDto
+                {
+                    Id = employeeModel.PayGradeId,
+                    Name = employeeModel.PayGrade?.Name ?? string.Empty
+                },
             };
         }
 
@@ -60,6 +81,59 @@ namespace qwikhr.Mappers
                 NextOfKinRelationship = employeeDto.NextOfKinRelationship,
                 PayGradeId = employeeDto.PayGradeId,
                 EmploymentTypeId = employeeDto.EmploymentTypeId
+            };
+        }
+
+        public static SingleEmployeeDto ToSingleEmployeeDto(this Employee employeeModel)
+        {
+            return new SingleEmployeeDto
+            {
+                Id = employeeModel.Id,
+                // Personal Information
+                Name = employeeModel.FirstName + " " + employeeModel.LastName,
+                Email = employeeModel.Email,
+                PhoneNumber = employeeModel.PhoneNumber,
+                DateOfBirth = employeeModel.DateOfBirth,
+                Gender = employeeModel.Gender,
+                MaritalStatus = employeeModel.MaritalStatus,
+                EmploymentDate = employeeModel.EmploymentDate,
+                TerminationDate = employeeModel.TerminationDate,
+                BankName = employeeModel.BankName,
+                AccountNumber = employeeModel.AccountNumber,
+                BVN = employeeModel.BVN,
+                TaxIdentificationNumber = employeeModel.TaxIdentificationNumber,
+                PensionFundAdministrator = employeeModel.PensionFundAdministrator,
+                PensionNumber = employeeModel.PensionNumber,
+                NextOfKinName = employeeModel.NextOfKinName,
+                NextOfKinPhone = employeeModel.NextOfKinPhone,
+                NextOfKinRelationship = employeeModel.NextOfKinRelationship,
+                EmploymentType = new EntityDto
+                {
+                    Id = employeeModel.EmploymentTypeId,
+                    Name = employeeModel.EmploymentType?.Name ?? string.Empty
+                },
+                // Map Department
+                Department = new EntityDto
+                {
+                    Id = employeeModel.DepartmentId,
+                    Name = employeeModel.Department?.Name ?? string.Empty
+                },
+
+                // Map Position
+                Position = new EntityDto
+                {
+                    Id = employeeModel.PositionId,
+                    Name = employeeModel.Position?.Name ?? string.Empty
+                },
+
+                // Map PayGrade
+                PayGrade = new EntityDto
+                {
+                    Id = employeeModel.PayGradeId,
+                    Name = employeeModel.PayGrade?.Name ?? string.Empty
+                },
+                // Map EmployeePayComponents
+                EmployeePayComponents = [.. employeeModel.PayComponents.Select(epc => epc.ToEmployeePayComponentDto())]
             };
         }
 

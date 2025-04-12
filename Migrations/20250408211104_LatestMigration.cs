@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace qwikhr.Migrations
 {
     /// <inheritdoc />
-    public partial class NewMigration : Migration
+    public partial class LatestMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -92,20 +92,19 @@ namespace qwikhr.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "CompanyPayrollApprovalLevels",
+                name: "ApprovalWorkflows",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    LevelName = table.Column<string>(type: "text", nullable: false),
-                    Order = table.Column<int>(type: "integer", nullable: false),
-                    IsFinalApproval = table.Column<bool>(type: "boolean", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: true),
                     CompanyId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()")
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_CompanyPayrollApprovalLevels", x => x.Id);
+                    table.PrimaryKey("PK_ApprovalWorkflows", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_CompanyPayrollApprovalLevels_Companies_CompanyId",
+                        name: "FK_ApprovalWorkflows_Companies_CompanyId",
                         column: x => x.CompanyId,
                         principalTable: "Companies",
                         principalColumn: "Id",
@@ -214,10 +213,10 @@ namespace qwikhr.Migrations
                     Name = table.Column<string>(type: "text", nullable: false),
                     Code = table.Column<string>(type: "text", nullable: true),
                     Description = table.Column<string>(type: "text", nullable: true),
-                    MinimumSalary = table.Column<decimal>(type: "numeric", nullable: false),
-                    MaximumSalary = table.Column<decimal>(type: "numeric", nullable: false),
-                    MidPointSalary = table.Column<decimal>(type: "numeric", nullable: false),
-                    IsExempt = table.Column<bool>(type: "boolean", nullable: false),
+                    MinimumSalary = table.Column<decimal>(type: "numeric", nullable: true),
+                    MaximumSalary = table.Column<decimal>(type: "numeric", nullable: true),
+                    MidPointSalary = table.Column<decimal>(type: "numeric", nullable: true),
+                    IsExempt = table.Column<bool>(type: "boolean", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CompanyId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()")
@@ -242,7 +241,8 @@ namespace qwikhr.Migrations
                     StartDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     EndDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     PayDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Status = table.Column<string>(type: "text", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    IsLocked = table.Column<bool>(type: "boolean", nullable: false),
                     CompanyId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()")
                 },
                 constraints: table =>
@@ -599,6 +599,37 @@ namespace qwikhr.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "CompanyPayrollApprovalLevels",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    LevelName = table.Column<string>(type: "text", nullable: false),
+                    Order = table.Column<int>(type: "integer", nullable: false),
+                    IsFinalApproval = table.Column<bool>(type: "boolean", nullable: false),
+                    WorkflowId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    ApproverId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    Metadata = table.Column<string>(type: "text", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
+                    CompanyId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CompanyPayrollApprovalLevels", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_CompanyPayrollApprovalLevels_ApprovalWorkflows_WorkflowId",
+                        column: x => x.WorkflowId,
+                        principalTable: "ApprovalWorkflows",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CompanyPayrollApprovalLevels_Companies_CompanyId",
+                        column: x => x.CompanyId,
+                        principalTable: "Companies",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Departments",
                 columns: table => new
                 {
@@ -739,39 +770,6 @@ namespace qwikhr.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "EmployeePayAdjustments",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    EmployeeId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    PayComponentId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    Amount = table.Column<decimal>(type: "numeric", nullable: false),
-                    CompanyId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_EmployeePayAdjustments", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_EmployeePayAdjustments_Companies_CompanyId",
-                        column: x => x.CompanyId,
-                        principalTable: "Companies",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_EmployeePayAdjustments_Employees_EmployeeId",
-                        column: x => x.EmployeeId,
-                        principalTable: "Employees",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_EmployeePayAdjustments_PayComponents_PayComponentId",
-                        column: x => x.PayComponentId,
-                        principalTable: "PayComponents",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "EmployeePayComponents",
                 columns: table => new
                 {
@@ -881,41 +879,6 @@ namespace qwikhr.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "PayrollApprovals",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    EmployeeId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    PayrollMonth = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    TotalPay = table.Column<decimal>(type: "numeric", nullable: false),
-                    Status = table.Column<string>(type: "text", nullable: false),
-                    CurrentApprovalLevelId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    CompanyId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PayrollApprovals", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_PayrollApprovals_Companies_CompanyId",
-                        column: x => x.CompanyId,
-                        principalTable: "Companies",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_PayrollApprovals_CompanyPayrollApprovalLevels_CurrentApprov~",
-                        column: x => x.CurrentApprovalLevelId,
-                        principalTable: "CompanyPayrollApprovalLevels",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_PayrollApprovals_Employees_EmployeeId",
-                        column: x => x.EmployeeId,
-                        principalTable: "Employees",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "PayrollRuns",
                 columns: table => new
                 {
@@ -923,8 +886,13 @@ namespace qwikhr.Migrations
                     PayrollPeriodId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
                     RunDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     RunById = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    Status = table.Column<string>(type: "text", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
                     Notes = table.Column<string>(type: "text", nullable: true),
+                    TotalGrossPay = table.Column<decimal>(type: "numeric", nullable: false),
+                    TotalDeductions = table.Column<decimal>(type: "numeric", nullable: false),
+                    TotalNetPay = table.Column<decimal>(type: "numeric", nullable: false),
+                    Metadata = table.Column<string>(type: "text", nullable: true),
+                    FinalizedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CompanyId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()")
                 },
                 constraints: table =>
@@ -1011,43 +979,44 @@ namespace qwikhr.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "PayrollApprovalHistories",
+                name: "PayrollApprovals",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    PayrollApprovalId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    ApproverId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    ApprovalLevelId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    Status = table.Column<string>(type: "text", nullable: false),
-                    Comments = table.Column<string>(type: "text", nullable: true),
-                    ApprovedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    PayrollRunId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    EmployeeId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    PayrollMonth = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    TotalPay = table.Column<decimal>(type: "numeric", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    CurrentApprovalLevelId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    Metadata = table.Column<string>(type: "text", nullable: true),
                     CompanyId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()")
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PayrollApprovalHistories", x => x.Id);
+                    table.PrimaryKey("PK_PayrollApprovals", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_PayrollApprovalHistories_Companies_CompanyId",
+                        name: "FK_PayrollApprovals_Companies_CompanyId",
                         column: x => x.CompanyId,
                         principalTable: "Companies",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_PayrollApprovalHistories_CompanyPayrollApprovalLevels_Appro~",
-                        column: x => x.ApprovalLevelId,
+                        name: "FK_PayrollApprovals_CompanyPayrollApprovalLevels_CurrentApprov~",
+                        column: x => x.CurrentApprovalLevelId,
                         principalTable: "CompanyPayrollApprovalLevels",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_PayrollApprovalHistories_Employees_ApproverId",
-                        column: x => x.ApproverId,
+                        name: "FK_PayrollApprovals_Employees_EmployeeId",
+                        column: x => x.EmployeeId,
                         principalTable: "Employees",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_PayrollApprovalHistories_PayrollApprovals_PayrollApprovalId",
-                        column: x => x.PayrollApprovalId,
-                        principalTable: "PayrollApprovals",
+                        name: "FK_PayrollApprovals_PayrollRuns_PayrollRunId",
+                        column: x => x.PayrollRunId,
+                        principalTable: "PayrollRuns",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -1062,9 +1031,13 @@ namespace qwikhr.Migrations
                     GrossPay = table.Column<decimal>(type: "numeric", nullable: false),
                     TotalDeductions = table.Column<decimal>(type: "numeric", nullable: false),
                     NetPay = table.Column<decimal>(type: "numeric", nullable: false),
+                    PAYETax = table.Column<decimal>(type: "numeric", nullable: false),
+                    PensionEmployee = table.Column<decimal>(type: "numeric", nullable: false),
+                    PensionEmployer = table.Column<decimal>(type: "numeric", nullable: false),
+                    NHF = table.Column<decimal>(type: "numeric", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
                     PaymentMethod = table.Column<string>(type: "text", nullable: true),
                     BankAccountNumber = table.Column<string>(type: "text", nullable: true),
-                    Status = table.Column<string>(type: "text", nullable: true),
                     CompanyId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()")
                 },
                 constraints: table =>
@@ -1124,6 +1097,50 @@ namespace qwikhr.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "PayrollApprovalHistories",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    PayrollApprovalId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    ApproverId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    ApprovalLevelId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    Comments = table.Column<string>(type: "text", nullable: true),
+                    ApprovedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Metadata = table.Column<string>(type: "text", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
+                    CompanyId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PayrollApprovalHistories", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PayrollApprovalHistories_Companies_CompanyId",
+                        column: x => x.CompanyId,
+                        principalTable: "Companies",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PayrollApprovalHistories_CompanyPayrollApprovalLevels_Appro~",
+                        column: x => x.ApprovalLevelId,
+                        principalTable: "CompanyPayrollApprovalLevels",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PayrollApprovalHistories_Employees_ApproverId",
+                        column: x => x.ApproverId,
+                        principalTable: "Employees",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PayrollApprovalHistories_PayrollApprovals_PayrollApprovalId",
+                        column: x => x.PayrollApprovalId,
+                        principalTable: "PayrollApprovals",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "PayrollEntryDetails",
                 columns: table => new
                 {
@@ -1134,6 +1151,9 @@ namespace qwikhr.Migrations
                     Units = table.Column<decimal>(type: "numeric", nullable: false),
                     Rate = table.Column<string>(type: "text", nullable: true),
                     Description = table.Column<string>(type: "text", nullable: true),
+                    Category = table.Column<string>(type: "text", nullable: false),
+                    Metadata = table.Column<string>(type: "text", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     CompanyId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()")
                 },
                 constraints: table =>
@@ -1169,6 +1189,11 @@ namespace qwikhr.Migrations
                     { 3, null, "Employee", "EMPLOYEE" },
                     { 4, null, "Manager", "MANAGER" }
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ApprovalWorkflows_CompanyId",
+                table: "ApprovalWorkflows",
+                column: "CompanyId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -1228,9 +1253,19 @@ namespace qwikhr.Migrations
                 column: "RegionId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_CompanyPayrollApprovalLevels_ApproverId",
+                table: "CompanyPayrollApprovalLevels",
+                column: "ApproverId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_CompanyPayrollApprovalLevels_CompanyId",
                 table: "CompanyPayrollApprovalLevels",
                 column: "CompanyId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CompanyPayrollApprovalLevels_WorkflowId",
+                table: "CompanyPayrollApprovalLevels",
+                column: "WorkflowId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Departments_BranchId",
@@ -1276,21 +1311,6 @@ namespace qwikhr.Migrations
                 name: "IX_EmployeeLeaveRequests_LeaveRequestId",
                 table: "EmployeeLeaveRequests",
                 column: "LeaveRequestId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_EmployeePayAdjustments_CompanyId",
-                table: "EmployeePayAdjustments",
-                column: "CompanyId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_EmployeePayAdjustments_EmployeeId",
-                table: "EmployeePayAdjustments",
-                column: "EmployeeId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_EmployeePayAdjustments_PayComponentId",
-                table: "EmployeePayAdjustments",
-                column: "PayComponentId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_EmployeePayComponents_CompanyId",
@@ -1503,6 +1523,11 @@ namespace qwikhr.Migrations
                 column: "EmployeeId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PayrollApprovals_PayrollRunId",
+                table: "PayrollApprovals",
+                column: "PayrollRunId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_PayrollEntries_CompanyId",
                 table: "PayrollEntries",
                 column: "CompanyId");
@@ -1609,6 +1634,14 @@ namespace qwikhr.Migrations
                 principalColumn: "Id");
 
             migrationBuilder.AddForeignKey(
+                name: "FK_CompanyPayrollApprovalLevels_Employees_ApproverId",
+                table: "CompanyPayrollApprovalLevels",
+                column: "ApproverId",
+                principalTable: "Employees",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
                 name: "FK_Departments_Employees_ManagerId",
                 table: "Departments",
                 column: "ManagerId",
@@ -1621,8 +1654,8 @@ namespace qwikhr.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_Employees_AspNetUsers_UserId",
-                table: "Employees");
+                name: "FK_AspNetUsers_Companies_CompanyId",
+                table: "AspNetUsers");
 
             migrationBuilder.DropForeignKey(
                 name: "FK_Branches_Companies_CompanyId",
@@ -1657,6 +1690,10 @@ namespace qwikhr.Migrations
                 table: "Regions");
 
             migrationBuilder.DropForeignKey(
+                name: "FK_Employees_AspNetUsers_UserId",
+                table: "Employees");
+
+            migrationBuilder.DropForeignKey(
                 name: "FK_Departments_Employees_ManagerId",
                 table: "Departments");
 
@@ -1680,9 +1717,6 @@ namespace qwikhr.Migrations
 
             migrationBuilder.DropTable(
                 name: "EmployeeLeaveRequests");
-
-            migrationBuilder.DropTable(
-                name: "EmployeePayAdjustments");
 
             migrationBuilder.DropTable(
                 name: "EmployeePayComponents");
@@ -1748,13 +1782,16 @@ namespace qwikhr.Migrations
                 name: "PayrollRuns");
 
             migrationBuilder.DropTable(
+                name: "ApprovalWorkflows");
+
+            migrationBuilder.DropTable(
                 name: "PayrollPeriods");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
+                name: "Companies");
 
             migrationBuilder.DropTable(
-                name: "Companies");
+                name: "AspNetUsers");
 
             migrationBuilder.DropTable(
                 name: "Employees");
