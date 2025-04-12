@@ -41,6 +41,9 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add(new AuthorizeFilter());
+}).AddNewtonsoftJson(options =>
+{
+    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
 });
 
 var dbName = Environment.GetEnvironmentVariable("DB_NAME");
@@ -128,6 +131,12 @@ builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 builder.Services.AddScoped<IPayGradeRepository, PayGradeRepository>();
 builder.Services.AddScoped<IPayComponentRepository, PayComponentRepository>();
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+builder.Services.AddScoped<IEmployeePayComponentRepository, EmployeePayComponentRepository>();
+builder.Services.AddScoped<IPayrollPeriodRepository, PayrollPeriodRepository>();
+builder.Services.AddScoped<IPayrollEntryRepository, PayrollEntryRepository>();
+builder.Services.AddScoped<IPayrollRunRepository, PayrollRunRepository>();
+builder.Services.AddScoped<IPayrollApprovalRepository, PayrollApprovalRepository>();
+builder.Services.AddScoped<IPayrollApprovalHistoryRepository, PayrollApprovalHistoryRepository>();
 
 
 // services
@@ -139,6 +148,9 @@ builder.Services.AddFluentEnail();
 builder.Services.AddScoped<IOtpService, OtpService>();
 builder.Services.AddSingleton<JwtCookieService>();
 builder.Services.AddScoped<UserContextHelper>();
+builder.Services.AddScoped<PayrollService>();
+builder.Services.AddScoped<PayrollApprovalService>();
+builder.Services.AddScoped<PayrollRunRepository>();
 
 //interceptors
 builder.Services.AddScoped<CompanyIdInterceptor>();
