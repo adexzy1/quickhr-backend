@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using qwikhr.Models;
 using qwikhr.Models.Payroll;
+using qwikhr.Seeder;
 
 namespace qwikhr.Extensions
 {
@@ -48,6 +49,32 @@ namespace qwikhr.Extensions
             builder.Entity<Employee>()
                 .HasIndex(e => e.PayGradeId)
                 .HasDatabaseName("ix_employee_paygrade");
+
+            // Statutory Rates
+            builder.Entity<StatutoryDeduction>(entity =>
+            {
+                entity.HasIndex(e => e.Code).IsUnique();
+            });
+
+            // PAYE Tax Bands
+            builder.Entity<PayeTaxBand>(entity =>
+            {
+                entity.HasIndex(e => new { e.LowerBound, e.UpperBound }).IsUnique();
+            });
+
+            // pay componnent
+            builder.Entity<PayComponent>(entity =>
+            {
+                entity.HasIndex(e => e.Code).IsUnique();
+            });
+            // pay grade
+            builder.Entity<PayGrade>(entity =>
+            {
+                entity.HasIndex(e => e.Code).IsUnique();
+            });
+
+            // Seed initial Nigerian data
+            SeedNigeriaStatutoryData.Seed(builder);
         }
     }
 

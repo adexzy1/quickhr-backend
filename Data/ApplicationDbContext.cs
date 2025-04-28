@@ -51,6 +51,9 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<int>, i
     public DbSet<PayrollPeriod> PayrollPeriods { get; set; }
     public DbSet<PayrollRun> PayrollRuns { get; set; }
     public DbSet<ApprovalWorkflow> ApprovalWorkflows { get; set; }
+    public DbSet<StatutoryDeduction> StatutoryDeductions { get; set; }
+    public DbSet<PayrollStatutoryDeduction> PayrollStatutoryDeductions { get; set; }
+    public DbSet<PayeTaxBand> PayeTaxBands { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder builder)

@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using qwikhr.Models;
 
@@ -10,6 +11,9 @@ namespace qwikhr.Common
 
         [ForeignKey("CompanyId")]
         public Company? Company { get; set; }
+
+        [ConcurrencyCheck]  // Add this
+        public int Version { get; set; }
     }
 
 }

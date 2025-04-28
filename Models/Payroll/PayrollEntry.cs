@@ -26,7 +26,7 @@ namespace qwikhr.Models.Payroll
         public virtual PayrollRun? PayrollRun { get; set; }
         [ForeignKey("EmployeeId")]
         public virtual Employee? Employee { get; set; }
-        public virtual ICollection<PayrollEntryDetail>? Details { get; set; } = new List<PayrollEntryDetail>();
+        public virtual ICollection<PayrollEntryDetail>? Details { get; set; } = [];
     }
 
     public enum PaymentStatus

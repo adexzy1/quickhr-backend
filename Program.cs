@@ -151,6 +151,7 @@ builder.Services.AddScoped<UserContextHelper>();
 builder.Services.AddScoped<PayrollService>();
 builder.Services.AddScoped<PayrollApprovalService>();
 builder.Services.AddScoped<PayrollRunRepository>();
+builder.Services.AddScoped<StatutoryCalculatorService>();
 
 //interceptors
 builder.Services.AddScoped<CompanyIdInterceptor>();

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using qwikhr.Dtos.Payroll;
 using qwikhr.Interfaces;
 using qwikhr.Mappers;
+using qwikhr.Models.Payroll;
 
 namespace qwikhr.Controllers
 {
@@ -41,6 +42,14 @@ namespace qwikhr.Controllers
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
+            }
+            if (payComponentDto.Code?.Equals("basic_salary", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                if (payComponentDto.CalculationType != CalculationType.FixedAmount)
+                    throw new InvalidOperationException("Basic salary must be FixedAmount");
+
+                if (payComponentDto.Category != PayComponentCategory.Earnings)
+                    throw new InvalidOperationException("Basic salary must be Earnings category");
             }
             var payComponent = payComponentDto.ToPayComponentFronCreateDto();
             var createdPayComponent = await _payComponentRepository.CreateAsync(payComponent);

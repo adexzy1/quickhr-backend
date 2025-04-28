@@ -15,7 +15,7 @@ namespace qwikhr.Models.Payroll
         public string? Rate { get; set; } // $X per unit
         public string? Description { get; set; }
         public string Category { get; set; } = "Allowance"; // Allowance, Deduction, Other
-
+        public bool IsTaxable { get; set; } = false; // Default to true
         // Navigation properties
         [ForeignKey("PayrollEntryId")]
         public virtual PayrollEntry? PayrollEntry { get; set; }

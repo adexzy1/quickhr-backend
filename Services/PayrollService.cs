@@ -1,3 +1,4 @@
+using System.Data;
 using Microsoft.EntityFrameworkCore;
 using qwikhr.Data;
 using qwikhr.Models.Payroll;
@@ -7,45 +8,49 @@ namespace qwikhr.Services
     public class PayrollService
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<PayrollService> _logger;
+        private readonly StatutoryCalculatorService _statutoryCalculator;
 
-        public PayrollService(ApplicationDbContext context)
+        public PayrollService(ApplicationDbContext context, ILogger<PayrollService> logger, StatutoryCalculatorService statutoryCalculator)
         {
+            _logger = logger;
             _context = context;
+            _statutoryCalculator = statutoryCalculator;
         }
 
-        // Consolidated Workflow: Process Payroll
+        // 1. Payroll Initialization
         public async Task<PayrollRun> RunPayrollWorkflowAsync(Guid payrollRunId)
         {
             await using var transaction = await _context.Database.BeginTransactionAsync(
-                System.Data.IsolationLevel.Serializable);
+                IsolationLevel.Serializable);
 
             try
             {
-                // Fetch with all needed includes
                 var payrollRun = await _context.PayrollRuns
                     .Include(pr => pr.Employees)
                         .ThenInclude(e => e.PayComponents)
+                        .ThenInclude(pc => pc.PayComponent)
                     .Include(pr => pr.PayrollEntries)
-                        .ThenInclude(pe => pe.Details)
+                    .Include(pr => pr.Company)
                     .AsTracking()
-                    .FirstOrDefaultAsync(pr => pr.Id == payrollRunId);
-
-                if (payrollRun == null)
-                {
-                    throw new Exception("PayrollRun not found.");
-                }
+                    .FirstOrDefaultAsync(pr => pr.Id == payrollRunId)
+                    ?? throw new Exception("PayrollRun not found.");
 
                 if (payrollRun.Status != PayrollRunStatus.Draft)
-                {
                     throw new Exception("PayrollRun has already been processed.");
-                }
 
-                // Initialize entries
-                var existingEmployeeIds = payrollRun.PayrollEntries.Select(pe => pe.EmployeeId).ToHashSet();
-                var newEmployees = payrollRun.Employees.Where(e => !existingEmployeeIds.Contains(e.Id)).ToList();
+                // Initialize entries for new employees
+                var existingEmployeeIds = payrollRun.PayrollEntries?
+                    .Select(pe => pe.EmployeeId)
+                    .ToHashSet() ?? [];
 
-                foreach (var employee in newEmployees)
+                foreach (var employee in payrollRun.Employees?
+                    .Where(e => !existingEmployeeIds.Contains(e.Id))
+                    ?? [])
                 {
+                    if (employee?.PayComponents == null)
+                        throw new InvalidOperationException($"Employee {employee?.Id} has no pay components");
+
                     var payrollEntry = new PayrollEntry
                     {
                         PayrollRunId = payrollRun.Id,
@@ -53,31 +58,91 @@ namespace qwikhr.Services
                         GrossPay = 0,
                         TotalDeductions = 0,
                         NetPay = 0,
+                        BankAccountNumber = employee.AccountNumber,
                         Details = []
                     };
 
-                    // First add the entry to get an ID
                     _context.PayrollEntries.Add(payrollEntry);
-
-                    // Now create details with the proper relationship
-                    foreach (var payComponent in employee.PayComponents)
-                    {
-                        payrollEntry.Details.Add(new PayrollEntryDetail
-                        {
-                            PayrollEntry = payrollEntry, // Set navigation property instead of ID
-                            PayComponentId = payComponent.PayComponentId,
-                            Amount = 0,
-                            Units = 0,
-                            Description = payComponent.PayComponent?.Code,
-                            Category = "Allowance",
-                        });
-                    }
                 }
 
-                // Save after all entries and details are created
                 await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
 
-                // Update status
+                return payrollRun;
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Payroll initialization failed for run {PayrollRunId}", payrollRunId);
+                throw;
+            }
+        }
+
+        // 2. Payroll Calculation
+        public async Task<PayrollRun> ProcessPayrollEntriesAsync(Guid payrollRunId)
+        {
+            await using var transaction = await _context.Database.BeginTransactionAsync(
+                IsolationLevel.Serializable);
+
+            try
+            {
+                var payrollRun = await _context.PayrollRuns
+                    .Include(pr => pr.PayrollEntries)
+                        .ThenInclude(pe => pe.Employee)
+                        .ThenInclude(e => e.PayComponents)
+                        .ThenInclude(epc => epc.PayComponent)
+                    .Include(pr => pr.Company)
+                    .AsTracking()
+                    .FirstOrDefaultAsync(pr => pr.Id == payrollRunId)
+                    ?? throw new Exception("PayrollRun not found.");
+
+                if (payrollRun.PayrollEntries == null)
+                    throw new Exception("PayrollEntries not loaded.");
+
+                // First, process all entries without updating details
+                foreach (var entry in payrollRun.PayrollEntries)
+                {
+                    if (entry.Employee?.PayComponents == null)
+                        throw new InvalidOperationException($"Employee data missing for entry {entry.Id}");
+
+                    // Reset and calculate
+                    entry.GrossPay = 0;
+                    entry.TotalDeductions = 0;
+
+                    var basicSalary = GetBaseSalary(entry.Employee.PayComponents);
+
+                    // First pass - regular components
+                    foreach (var pc in entry.Employee.PayComponents
+                        .Where(pc => pc.PayComponent?.CalculationType != CalculationType.PercentageOfEarnings))
+                    {
+                        ProcessComponent(entry, pc, basicSalary);
+                    }
+
+                    // Second pass - percentage-of-earnings
+                    foreach (var pc in entry.Employee.PayComponents
+                        .Where(pc => pc.PayComponent?.CalculationType == CalculationType.PercentageOfEarnings))
+                    {
+                        ProcessComponent(entry, pc, entry.GrossPay);
+                    }
+
+                    // Calculate statutory deductions
+                    if (payrollRun.Company != null)
+                    {
+                        var bht = CalculateBht(entry.Employee.PayComponents);
+                        var statutoryResult = await _statutoryCalculator.CalculateDeductions(basicSalary, entry.GrossPay, bht);
+                        AddStatutoryDeductions(entry, statutoryResult);
+                    }
+
+                    entry.NetPay = entry.GrossPay - entry.TotalDeductions;
+                }
+
+                // Now update all details in a separate step
+                await UpdateAllEntryDetailsAsync(payrollRun.PayrollEntries);
+
+                // Update payroll totals
+                payrollRun.TotalGrossPay = payrollRun.PayrollEntries.Sum(e => e.GrossPay);
+                payrollRun.TotalDeductions = payrollRun.PayrollEntries.Sum(e => e.TotalDeductions);
+                payrollRun.TotalNetPay = payrollRun.PayrollEntries.Sum(e => e.NetPay);
                 payrollRun.Status = PayrollRunStatus.Calculated;
 
                 await _context.SaveChangesAsync();
@@ -85,171 +150,190 @@ namespace qwikhr.Services
 
                 return payrollRun;
             }
-            catch (DbUpdateConcurrencyException ex)
+            catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                throw new Exception("Payroll data was modified by another process. Please retry.", ex);
-            }
-            catch (Exception)
-            {
-                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Payroll processing failed for run {PayrollRunId}", payrollRunId);
                 throw;
             }
         }
-        // Process Payroll Entries with Nigerian Payroll Rules
-    
-        public async Task<PayrollRun> ProcessPayrollEntriesAsync(Guid payrollRunId)
-{
-    // Use a transaction with retry for deadlocks
-    var executionStrategy = _context.Database.CreateExecutionStrategy();
-    
-    return await executionStrategy.ExecuteAsync(async () =>
-    {
-        using var transaction = await _context.Database.BeginTransactionAsync();
-        
-        try
+
+        private async Task UpdateAllEntryDetailsAsync(ICollection<PayrollEntry> entries)
         {
-            // Load payroll run WITH LOCK to prevent concurrent modifications
-            var payrollRun = await _context.PayrollRuns
-                .Include(pr => pr.PayrollEntries)
-                    .ThenInclude(pe => pe.Details)
-                .FirstOrDefaultAsync(pr => pr.Id == payrollRunId);
+            // Load all existing details in one query
+            var entryIds = entries.Select(e => e.Id).ToList();
+            var allExistingDetails = await _context.PayrollEntryDetails
+                .Where(d => entryIds.Contains(d.PayrollEntryId))
+                .ToListAsync();
 
-            if (payrollRun?.PayrollEntries == null)
-                throw new Exception("PayrollRun or PayrollEntries not found.");
+            var detailsByEntryId = allExistingDetails
+                .GroupBy(d => d.PayrollEntryId)
+                .ToDictionary(g => g.Key, g => g.ToDictionary(d => d.PayComponentId));
 
-            // Process calculations
-            foreach (var entry in payrollRun.PayrollEntries)
+            foreach (var entry in entries)
             {
-                // Fetch payroll details
-                var basicSalary = entry.Details?.FirstOrDefault(d => d.Description == "Basic Salary")?.Amount ?? 0;
-                var housingAllowance = entry.Details?.FirstOrDefault(d => d.Description == "Housing Allowance")?.Amount ?? 0;
-                var transportAllowance = entry.Details?.FirstOrDefault(d => d.Description == "Transport Allowance")?.Amount ?? 0;
-                var otherAllowances = entry.Details?.Where(d => d.Category == "Allowance" && d.Description != "Basic Salary" && d.Description != "Housing Allowance" && d.Description != "Transport Allowance")
-                    .Sum(d => d.Amount) ?? 0;
+                entry.Details ??= new List<PayrollEntryDetail>();
 
-                // Calculate gross pay
-                entry.GrossPay = basicSalary + housingAllowance + transportAllowance + otherAllowances;
+                var existingDetails = detailsByEntryId.TryGetValue(entry.Id, out var details)
+                    ? details
+                    : new Dictionary<Guid, PayrollEntryDetail>();
 
-                // Calculate statutory deductions
-                var pensionEmployee = CalculatePensionContribution(basicSalary, 0.08m); // 8% of basic salary
-                var pensionEmployer = CalculatePensionContribution(basicSalary, 0.10m); // 10% of basic salary
-                var nhf = CalculateNHF(basicSalary); // 2.5% of basic salary
-                var nsitf = CalculateNSITF(entry.GrossPay); // NSITF based on gross pay
-                var paye = CalculatePAYE(entry.GrossPay); // PAYE tax based on gross pay
-
-                // Total deductions
-                entry.TotalDeductions = pensionEmployee + nhf + nsitf + paye;
-
-                // Net pay
-                entry.NetPay = entry.GrossPay - entry.TotalDeductions;
-
-                // Update payroll entry details for deductions
-                UpdatePayrollEntryDetail(entry, "Pension (Employee)", pensionEmployee, "Deduction");
-                UpdatePayrollEntryDetail(entry, "Pension (Employer)", pensionEmployer, "Deduction");
-                UpdatePayrollEntryDetail(entry, "NHF", nhf, "Deduction");
-                UpdatePayrollEntryDetail(entry, "NSITF", nsitf, "Deduction");
-                UpdatePayrollEntryDetail(entry, "PAYE", paye, "Deduction");
-            }
-
-            // Update totals
-            payrollRun.TotalGrossPay = payrollRun.PayrollEntries.Sum(e => e.GrossPay);
-            payrollRun.TotalDeductions = payrollRun.PayrollEntries.Sum(e => e.TotalDeductions);
-            payrollRun.TotalNetPay = payrollRun.PayrollEntries.Sum(e => e.NetPay);
-            payrollRun.Status = PayrollRunStatus.Calculated;
-
-            // Save changes and commit
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
-
-            return payrollRun;
-        }
-        catch (Exception ex)
-        {
-            await transaction.RollbackAsync();
-            throw new Exception($"Payroll processing failed: {ex.Message}");
-        }
-    });
-}
-
-        // Helper: Calculate Pension Contribution
-        private static decimal CalculatePensionContribution(decimal basicSalary, decimal rate)
-        {
-            return basicSalary * rate;
-        }
-
-        // Helper: Calculate NHF (National Housing Fund)
-        private static decimal CalculateNHF(decimal basicSalary)
-        {
-            return basicSalary * 0.025m; // 2.5% of basic salary
-        }
-
-        // Helper: Calculate NSITF (Nigeria Social Insurance Trust Fund)
-        private static decimal CalculateNSITF(decimal grossPay)
-        {
-            return grossPay * 0.01m; // 1% of gross pay
-        }
-
-        // Helper: Calculate PAYE (Pay-As-You-Earn Tax)
-        private static decimal CalculatePAYE(decimal grossPay)
-        {
-            if (grossPay <= 30000)
-                return grossPay * 0.07m; // 7% for income <= 30,000
-            else if (grossPay <= 60000)
-                return grossPay * 0.11m; // 11% for income <= 60,000
-            else if (grossPay <= 110000)
-                return grossPay * 0.15m; // 15% for income <= 110,000
-            else if (grossPay <= 160000)
-                return grossPay * 0.19m; // 19% for income <= 160,000
-            else if (grossPay <= 320000)
-                return grossPay * 0.21m; // 21% for income <= 320,000
-            else
-                return grossPay * 0.24m; // 24% for income > 320,000
-        }
-
-        // Helper: Update Payroll Entry Details
-        private static void UpdatePayrollEntryDetail(PayrollEntry entry, string description, decimal amount, string category)
-        {
-            var detail = entry.Details?.FirstOrDefault(d => d.Description == description);
-            if (detail != null)
-            {
-                detail.Amount = amount;
-            }
-            else
-            {
-                entry.Details?.Add(new PayrollEntryDetail
+                foreach (var empPc in entry.Employee.PayComponents)
                 {
-                    Description = description,
-                    Amount = amount,
-                    Category = category
-                });
+                    if (empPc?.PayComponent == null) continue;
+
+                    var amount = GetComponentAmount(empPc, entry.GrossPay);
+                    var componentId = empPc.PayComponent.Id;
+
+                    if (existingDetails.TryGetValue(componentId, out var detail))
+                    {
+                        // Update existing detail
+                        detail.Amount = amount;
+                        detail.Description = empPc.PayComponent.Code ?? empPc.PayComponent.Name;
+                        detail.Category = empPc.PayComponent.Category.ToString();
+                        detail.IsTaxable = empPc.PayComponent.IsTaxable;
+                    }
+                    else
+                    {
+                        // Add new detail
+                        var newDetail = new PayrollEntryDetail
+                        {
+                            Id = Guid.NewGuid(),
+                            PayrollEntryId = entry.Id,
+                            PayComponentId = componentId,
+                            Amount = amount,
+                            Description = empPc.PayComponent.Code ?? empPc.PayComponent.Name,
+                            Category = empPc.PayComponent.Category.ToString(),
+                            IsTaxable = empPc.PayComponent.IsTaxable,
+                        };
+                        _context.PayrollEntryDetails.Add(newDetail);
+                        entry.Details.Add(newDetail);
+                    }
+                }
+
+                // Remove obsolete details
+                var currentComponentIds = entry.Employee.PayComponents
+                    .Where(pc => pc?.PayComponent != null)
+                    .Select(pc => pc.PayComponent.Id)
+                    .ToHashSet();
+
+                var obsoleteDetails = existingDetails.Values
+                    .Where(d => !currentComponentIds.Contains(d.PayComponentId))
+                    .ToList();
+
+                foreach (var detail in obsoleteDetails)
+                {
+                    _context.PayrollEntryDetails.Remove(detail);
+                    entry.Details.Remove(detail);
+                }
             }
         }
 
 
+        private static void AddStatutoryDeductions(PayrollEntry entry, StatutoryCalculatorService.StatutoryCalculationResult result)
+        {
+            // Add statutory deductions to the entry
+            entry.TotalDeductions += result.PensionEmployee;
+            entry.TotalDeductions += result.NHF;
+            entry.TotalDeductions += result.PAYE;
+            entry.NHF = result.NHF;
+            entry.PensionEmployee = result.PensionEmployee;
+            entry.PensionEmployer = result.PensionEmployer;
+            entry.PAYETax = result.PAYE;
+            entry.PensionEmployee = result.PensionEmployee;
+            entry.PensionEmployer = result.PensionEmployer;
+            entry.NHF = result.NHF;
 
-        // Finalize PayrollRun
+
+            // Add employer contributions (these don't affect employee's net pay)
+            // You might want to track these separately for reporting purposes
+        }
+
+        // 3. Helper Methods
+        private static void ProcessComponent(PayrollEntry entry, EmployeePayComponent empPayComponent, decimal baseAmount)
+        {
+            var component = empPayComponent.PayComponent
+                ?? throw new InvalidOperationException("PayComponent is null");
+
+            decimal amount = component.CalculationType switch
+            {
+                CalculationType.FixedAmount => empPayComponent.Amount,
+                CalculationType.PercentageOfBase => baseAmount * (empPayComponent.Amount / 100),
+                CalculationType.PercentageOfEarnings => baseAmount * (empPayComponent.Amount / 100),
+                _ => empPayComponent.Amount
+            };
+
+            switch (component.Category)
+            {
+                case PayComponentCategory.Earnings:
+                    entry.GrossPay += amount;
+                    break;
+                case PayComponentCategory.Deduction:
+                case PayComponentCategory.Tax:
+                    entry.TotalDeductions += amount;
+                    break;
+            }
+        }
+
+        private static decimal GetBaseSalary(ICollection<EmployeePayComponent> payComponents)
+        {
+            return payComponents?
+                .Where(pc => pc?.PayComponent != null &&
+                      pc.PayComponent.Code?.Equals("Basic_Salary", StringComparison.OrdinalIgnoreCase) == true)
+                .Sum(pc => pc.Amount)
+                ?? throw new InvalidOperationException("No valid base salary found");
+        }
+
+        private static decimal GetComponentAmount(EmployeePayComponent empPc, decimal grossPay)
+        {
+            if (empPc?.PayComponent == null)
+                throw new InvalidOperationException("Invalid pay component");
+
+            if (empPc.PayComponent.Code?.Equals("Basic_Salary", StringComparison.OrdinalIgnoreCase) == true)
+                return empPc.Amount;
+
+            return empPc.PayComponent.CalculationType switch
+            {
+                CalculationType.FixedAmount => empPc.Amount,
+                CalculationType.PercentageOfBase => GetBaseSalary(empPc.Employee.PayComponents) * (empPc.Amount / 100),
+                CalculationType.PercentageOfEarnings => grossPay * (empPc.Amount / 100),
+                _ => empPc.Amount
+            };
+        }
+
+        private static decimal CalculateBht(ICollection<EmployeePayComponent> payComponents)
+        {
+            var basicSalary = payComponents?
+                   .Where(pc => pc?.PayComponent != null &&
+                         pc.PayComponent.Code?.Equals("Basic_Salary", StringComparison.OrdinalIgnoreCase) == true)
+                   .Sum(pc => pc.Amount);
+
+            var housingAllowance = payComponents?.FirstOrDefault(pc => pc?.PayComponent != null &&
+                  pc.PayComponent.Code?.Equals("housing_allowance", StringComparison.OrdinalIgnoreCase) == true)?.Amount
+            ?? throw new InvalidOperationException("No valid housing allowance found");
+
+            var transportAllowance = payComponents?.FirstOrDefault(pc => pc?.PayComponent != null &&
+                  pc.PayComponent.Code?.Equals("transport_allowance", StringComparison.OrdinalIgnoreCase) == true)?.Amount
+            ?? throw new InvalidOperationException("No valid transport allowance found");
+
+            return basicSalary + housingAllowance + transportAllowance ?? 0;
+
+        }
+
+        // 4. Finalization
         public async Task<bool> FinalizePayrollRunAsync(Guid payrollRunId)
         {
-            // Fetch the payroll run
             var payrollRun = await _context.PayrollRuns
-                .Include(pr => pr.PayrollEntries)
-                .FirstOrDefaultAsync(pr => pr.Id == payrollRunId);
+                .FirstOrDefaultAsync(pr => pr.Id == payrollRunId)
+                ?? throw new Exception("PayrollRun not found");
 
-            if (payrollRun == null)
-                throw new Exception("PayrollRun not found.");
-
-            // Ensure the payroll run is fully approved
             if (payrollRun.Status != PayrollRunStatus.Approved)
-                throw new Exception("PayrollRun must be fully approved before finalization.");
+                throw new Exception("PayrollRun must be approved before finalization");
 
-            // Mark the payroll run as finalized
             payrollRun.Status = PayrollRunStatus.Finalized;
             payrollRun.FinalizedAt = DateTime.UtcNow;
 
-            // Save changes
             await _context.SaveChangesAsync();
-
             return true;
         }
     }
